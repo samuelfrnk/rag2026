@@ -34,3 +34,7 @@ General:
         - > 0.75 for broad ones
         - 1.00 would beperfect (but prob impossible to achieve lol)
 - THe output in the final pipeline had many duplicates so i removed them (didnt check for performance differences yet)
+
+TODOs:
+- Add pdf extractor (If time: images/screenshots)
+- Add "chatbot" style functionality that is more fancy then terminal
