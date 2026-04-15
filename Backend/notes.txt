@@ -1,0 +1,36 @@
+FAISS:
+- Enables search through a larga set of vectors extremly fast
+- Solves finding the k most similar vectors
+- Runs in memory using np.float32 arrays
+- the flat index uses no compression and no approx (for more data we might need to change to IVFFlat)
+
+Index type:
+- IP (Inner/dot product)
+- After L2 norm, inner product becomes cosine similarity
+- IndexFlatIP + L2 = cosine similarity search
+
+Retrieval:
+- query string get embedded and l2 normed
+- index.search() returns 2 arrays: scores (cosine similarity) and ids (row pos in the index)
+- ids then used to lookup in the meta list (plain python list) (index row 0 = meta[0])
+- idx == -1 handels edge cases where FAISS couldn't fill all top_k slots
+
+Caching:
+- faiss.write_index / read_index returns a binary .faiss file
+- meta list (titles, abstracts, terms) saved seperately as json bc faiss only stores vectors
+- get_or_build_index looks for the files in dir and creates them if needed (this gets skipped otherwise)
+
+LLM for answer gen:
+- load_kwargs for less typing (some efficency recomandation from Claude)
+- float16 for half precision (less vram/ram, slightly less accurte)
+- float32 for full precision
+- device map auto to automatically split the model across hardware
+- weights get compressed to 4bit from 16 using BItsAndBytesConfig
+
+General:
+- Topk scores currently are weak (probs bc of model choice)
+    - Scores that would be great:
+        - > 0.8 for specific queries
+        - > 0.75 for broad ones
+        - 1.00 would beperfect (but prob impossible to achieve lol)
+- THe output in the final pipeline had many duplicates so i removed them (didnt check for performance differences yet)
