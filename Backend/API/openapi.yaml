@@ -1,0 +1,357 @@
+openapi: 3.1.0
+info:
+  title: arXiv Semantic Research Assistant API
+  description: |
+    RAG-based API for semantic search and Q&A over arXiv academic papers.
+    Users can query by keyword, natural language sentence, or upload a PDF.
+    The system retrieves relevant papers and generates a synthesized response.
+  version: 0.1.0
+
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://prod.url.com
+    description: Production
+
+tags:
+  - name: search
+    description: Semantic paper search and retrieval
+  - name: qa
+    description: Question answering over retrieved papers
+  - name: papers
+    description: Individual paper lookup
+paths:
+
+  /search:
+    post:
+      tags: [search]
+      summary: Semantic paper search
+      description: |
+        Takes a natural language query or keywords and returns a ranked list
+        of relevant arXiv papers using semantic similarity (sentence-transformers)
+        optionally combined with BM25 for hybrid ranking.
+      operationId: searchPapers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Ranked list of relevant papers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /search/upload:
+    post:
+      tags: [search]
+      summary: Search by PDF upload
+      description: |
+        Upload a PDF. The system extracts text, embeds it, and retrieves
+        semantically similar papers from the index.
+      operationId: searchByPdf
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF file to use as search query
+                top_k:
+                  type: integer
+                  default: 10
+                  minimum: 1
+                  maximum: 50
+                  description: Number of results to return
+      responses:
+        '200':
+          description: Ranked list of relevant papers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          description: Invalid file type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /qa:
+    post:
+      tags: [qa]
+      summary: Ask a question (RAG)
+      description: |
+        Submit a natural language question. The system retrieves relevant papers
+        and uses an LLM to generate a grounded answer with citations.
+      operationId: askQuestion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QARequest'
+      responses:
+        '200':
+          description: Generated answer with source papers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QAResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /papers/{arxiv_id}:
+    get:
+      tags: [papers]
+      summary: Get paper by arXiv ID
+      description: Returns metadata for a single paper by its arXiv ID.
+      operationId: getPaper
+      parameters:
+        - name: arxiv_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "2103.00020"
+          description: arXiv paper ID (without version suffix)
+      responses:
+        '200':
+          description: Paper metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paper'
+        '404':
+          description: Paper not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /papers/{arxiv_id}/similar:
+    get:
+      tags: [papers]
+      summary: Find similar papers
+      description: Returns papers semantically similar to the given paper.
+      operationId: getSimilarPapers
+      parameters:
+        - name: arxiv_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "2103.00020"
+        - name: top_k
+          in: query
+          schema:
+            type: integer
+            default: 5
+            minimum: 1
+            maximum: 20
+      responses:
+        '200':
+          description: List of similar papers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '404':
+          description: Paper not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+
+  schemas:
+
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Natural language query or keywords
+          example: "transformer attention mechanism image classification"
+        top_k:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 50
+          description: Number of results to return
+        filters:
+          $ref: '#/components/schemas/SearchFilters'
+        ranking:
+          type: string
+          enum: [semantic, bm25, hybrid]
+          default: hybrid
+          description: Ranking method to use
+
+    SearchFilters:
+      type: object
+      properties:
+        year_from:
+          type: integer
+          minimum: 1990
+          example: 2020
+          description: Filter papers published from this year onwards
+        year_to:
+          type: integer
+          example: 2025
+          description: Filter papers published up to this year
+        categories:
+          type: array
+          items:
+            type: string
+          example: ["cs.CV", "cs.LG"]
+          description: arXiv category codes to filter by
+
+    SearchResponse:
+      type: object
+      properties:
+        query:
+          type: string
+          description: The original query
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+        total:
+          type: integer
+          description: Total number of results returned
+        ranking_method:
+          type: string
+          enum: [semantic, bm25, hybrid]
+
+    SearchResult:
+      type: object
+      properties:
+        paper:
+          $ref: '#/components/schemas/Paper'
+        score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Relevance score
+        rank:
+          type: integer
+          description: Position in result list
+
+    QARequest:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Natural language question
+          example: "What are the main approaches to self-supervised learning in computer vision?"
+        top_k:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 20
+          description: Number of papers to retrieve as context
+        filters:
+          $ref: '#/components/schemas/SearchFilters'
+        model:
+          type: string
+          enum: [llama-3.1-8b, qwen-4b, deepseek-r1-7b]
+          default: llama-3.1-8b
+          description: LLM to use for answer generation
+
+    QAResponse:
+      type: object
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+          description: LLM-generated answer grounded in retrieved papers
+        sources:
+          type: array
+          description: Papers used as context for the answer
+          items:
+            $ref: '#/components/schemas/SearchResult'
+        model:
+          type: string
+          description: Model used for generation
+
+    Paper:
+      type: object
+      properties:
+        id:
+          type: string
+          description: arXiv ID
+          example: "2103.00020"
+        title:
+          type: string
+          example: "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"
+        abstract:
+          type: string
+          description: Full abstract text
+        terms:
+          type: array
+          items:
+            type: string
+          description: arXiv category tags
+          example: ["cs.CV", "cs.LG"]
+        abs_url:
+          type: string
+          format: uri
+          description: Link to abstract page
+          example: "https://arxiv.org/abs/2103.00020"
+        pdf_url:
+          type: string
+          format: uri
+          description: Direct PDF link
+          example: "https://arxiv.org/pdf/2103.00020"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
