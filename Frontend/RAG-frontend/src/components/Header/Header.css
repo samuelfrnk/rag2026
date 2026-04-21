@@ -1,0 +1,33 @@
+.header {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+
+.logo {
+  height: 4.5rem;          /* controls size */
+  width: auto;           /* keeps aspect ratio */
+  object-fit: contain;   /* prevents distortion */
+  margin: auto;             /* centers the image */
+}
+.logo:hover {
+  transform: scale(1.1);
+  transition: 0.2s;
+}
+
+h1 {
+  color: #5d3a8c;
+  margin: 0rem;
+  font-family: "JetBrains Mono", Consolas, monospace;
+}
+
+p.slogan {
+  color: #6129ab;
+}
+
+p.info {
+  color: #444;
+  font-size: 0.6rem;
+}
