@@ -3,6 +3,7 @@ import pandas as pd
 import hashlib
 
 FILENAME = "arxiv_scrape_1"
+FILENAME = "arxiv_data_22_04"
 
 CSV_PATH = f"datasets/{FILENAME}.csv"
 OUTPUT_PATH = f"cleaned_datasets/{FILENAME}_cleaned.csv"
@@ -46,8 +47,8 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     print(f"Dropped {before - len(df):,} exact-duplicate abstracts")
 
     # ── 8. Normalise terms
-    df["terms"] = (
-        df["terms"]
+    df["categories"] = (
+        df["categories"]
         .str.lower()
         .str.replace(r"\s+", " ", regex=True)
     )
@@ -69,6 +70,7 @@ def save(df: pd.DataFrame, path: str):
     df.to_csv(path, index=False)
     print(f"\nSaved cleaned data to {path}")
 
+    print(df.describe())
     print(df.head(3).to_string())
 
 

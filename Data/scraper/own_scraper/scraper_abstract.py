@@ -4,6 +4,7 @@
 import arxiv
 import pandas as pd
 import time
+import config_reader
 
 query_keywords = [
     "image segmentation",
@@ -51,13 +52,10 @@ def query_with_keywords(query):
     )
     results = []
     for res in client.results(search):
-        results.append({
-            "id": res.entry_id.split("/")[-1].split("v")[0],
-            "pdf_url": res.pdf_url,
-            "terms": res.categories,
-            "titles": res.title,
-            "abstracts": res.summary
-        })
+
+        converted_result = config_reader.get_arxiv_columns(res)
+        results.append(converted_result)
+
     return results
 
 

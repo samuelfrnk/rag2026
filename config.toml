@@ -1,7 +1,15 @@
-[db_format]
-    columns = [
-        "terms", "titles", "abstracts", "entry_ids", "pdf_urls",
-    ]
+[db_columns]
+    titles = "title"
+    abstracts = "summary"
+    categories = "categories"
+
+    entry_ids = "entry_id"
+    pdf_url = "pdf_url"
+
+    published = "published"
+    authors = "authors"
+    primary_category = "primary_category"
+
 
 [embedding_model]
     embed_model_backend = "sentence-transformers/all-MiniLM-L6-v2"
