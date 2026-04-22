@@ -30,10 +30,7 @@ EMBEDDING_DIM    = 384
 BATCH_SIZE       = 64
 TABLE_NAME       = "abstracts"
 
-DB_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:pgvec_42@localhost:5432"
-)
+NUVOLOS_HOSTNAME = "nv-service-6a8030c4935edc72c7febd82b8fae93e"
 
 
 SCHEMA_SQL = f"""
@@ -95,7 +92,14 @@ ON CONFLICT (entry_id) DO UPDATE SET
 
 
 def get_connection():
-    conn = psycopg2.connect(DB_URL)
+
+    conn = psycopg2.connect(
+    host="your-nuvolos-hostname",   # just the hostname, no port
+    port=5432,
+    dbname="rag_db",
+    user="your_username",
+    password="your_password"
+)
 #    register_vector(conn)
     return conn
 

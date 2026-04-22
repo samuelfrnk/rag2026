@@ -1,0 +1,11 @@
+[db_format]
+    columns = [
+        "terms", "titles", "abstracts", "entry_ids", "pdf_urls",
+    ]
+
+[embedding_model]
+    embed_model_backend = "sentence-transformers/all-MiniLM-L6-v2"
+    # Larger alternative: "sentence-transformers/all-mpnet-base-v2"
+    embed_batch = 256
+
+
