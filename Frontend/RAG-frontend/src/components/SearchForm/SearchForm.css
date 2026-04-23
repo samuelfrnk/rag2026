@@ -165,3 +165,9 @@ p.info {
   background: #3d255c;
 }
 
+.submit-button:disabled {
+  background: #3d255c;
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
