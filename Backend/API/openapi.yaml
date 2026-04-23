@@ -5,7 +5,7 @@ info:
     RAG-based API for semantic search and Q&A over arXiv academic papers.
     Users can query by keyword, natural language sentence, or upload a PDF.
     The system retrieves relevant papers and generates a synthesized response.
-  version: 0.1.0
+  version: 0.2.0
 
 
 servers:
@@ -20,7 +20,8 @@ tags:
   - name: qa
     description: Question answering over retrieved papers
   - name: papers
-    description: Individual paper lookup
+    description: Individual paper lookup and citation export
+
 paths:
 
   /search:
@@ -31,6 +32,11 @@ paths:
         Takes a natural language query or keywords and returns a ranked list
         of relevant arXiv papers using semantic similarity (sentence-transformers)
         optionally combined with BM25 for hybrid ranking.
+
+        **Use case #1 — Searching with Keywords**: A researcher looking to
+        explore a topic submits one or more keywords (e.g. "ASR", "LLM Hallucinations")
+        and receives the top-k most relevant papers, sortable by relevance,
+        year, or citation count.
       operationId: searchPapers
       requestBody:
         required: true
@@ -55,8 +61,14 @@ paths:
       tags: [search]
       summary: Search by PDF upload
       description: |
-        Upload a PDF. The system extracts text, embeds it, and retrieves
-        semantically similar papers from the index.
+        Upload a PDF (e.g. a draft paper or related-work section). The system
+        extracts and embeds the text, then retrieves semantically similar papers
+        from the index — returning a justification for why each result fits.
+
+        **Use case #2 — Searching with text paragraphs/PDFs**: A researcher
+        writing a paper uploads their draft to find concrete citations for their
+        related-work section. Each result includes a brief justification
+        explaining how it relates to the uploaded content.
       operationId: searchByPdf
       requestBody:
         required: true
@@ -76,9 +88,11 @@ paths:
                   minimum: 1
                   maximum: 50
                   description: Number of results to return
+                sort_by:
+                  $ref: '#/components/schemas/SortField'
       responses:
         '200':
-          description: Ranked list of relevant papers
+          description: Ranked list of relevant papers with justifications
           content:
             application/json:
               schema:
@@ -100,7 +114,12 @@ paths:
       summary: Ask a question (RAG)
       description: |
         Submit a natural language question. The system retrieves relevant papers
-        and uses an LLM to generate a grounded answer with citations.
+        and uses an LLM to generate a grounded answer with citations at the
+        passage level, not just paper level.
+
+        **Use case #5 — Q&A Functionality**: A user inspecting search results
+        asks a specific question. The answer cites the exact section/passage
+        of each source paper it draws from.
       operationId: askQuestion
       requestBody:
         required: true
@@ -110,7 +129,7 @@ paths:
               $ref: '#/components/schemas/QARequest'
       responses:
         '200':
-          description: Generated answer with source papers
+          description: Generated answer with passage-level source citations
           content:
             application/json:
               schema:
@@ -124,7 +143,13 @@ paths:
     get:
       tags: [papers]
       summary: Get paper by arXiv ID
-      description: Returns metadata for a single paper by its arXiv ID.
+      description: |
+        Returns full metadata for a single paper by its arXiv ID.
+
+        **Use case #4 — Getting More Information on a retrieved Paper**:
+        A user clicks on a paper title in the search results to inspect it
+        further. Returns the arXiv link, full abstract, authors, year, and
+        a pre-formatted citation in the requested style.
       operationId: getPaper
       parameters:
         - name: arxiv_id
@@ -134,13 +159,21 @@ paths:
             type: string
             example: "2103.00020"
           description: arXiv paper ID (without version suffix)
+        - name: citation_style
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CitationStyle'
+          description: |
+            If provided, the response includes a pre-formatted citation string
+            in the requested style.
       responses:
         '200':
-          description: Paper metadata
+          description: Paper metadata with optional citation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Paper'
+                $ref: '#/components/schemas/PaperDetail'
         '404':
           description: Paper not found
           content:
@@ -170,6 +203,10 @@ paths:
             default: 5
             minimum: 1
             maximum: 20
+        - name: sort_by
+          in: query
+          schema:
+            $ref: '#/components/schemas/SortField'
       responses:
         '200':
           description: List of similar papers
@@ -188,6 +225,32 @@ components:
 
   schemas:
 
+    # ------------------------------------------------------------------ #
+    #  Shared enums / value types                                          #
+    # ------------------------------------------------------------------ #
+
+    SortField:
+      type: string
+      enum: [relevance, year, citations]
+      default: relevance
+      description: |
+        Controls result ordering.
+        - `relevance`: semantic similarity score (default)
+        - `year`: most recently published first
+        - `citations`: most-cited first (requires citation data in index)
+
+    CitationStyle:
+      type: string
+      enum: [bibtex, apa, mla, chicago, vancouver]
+      default: bibtex
+      description: |
+        Citation format to return with a paper.
+        See https://www.scribbr.com/citing-sources/citation-styles/ for style details.
+
+    # ------------------------------------------------------------------ #
+    #  Search                                                              #
+    # ------------------------------------------------------------------ #
+
     SearchRequest:
       type: object
       required: [query]
@@ -204,13 +267,10 @@ components:
           minimum: 1
           maximum: 50
           description: Number of results to return
+        sort_by:
+          $ref: '#/components/schemas/SortField'
         filters:
           $ref: '#/components/schemas/SearchFilters'
-        ranking:
-          type: string
-          enum: [semantic, bm25, hybrid]
-          default: hybrid
-          description: Ranking method to use
 
     SearchFilters:
       type: object
@@ -244,9 +304,6 @@ components:
         total:
           type: integer
           description: Total number of results returned
-        ranking_method:
-          type: string
-          enum: [semantic, bm25, hybrid]
 
     SearchResult:
       type: object
@@ -262,10 +319,26 @@ components:
         rank:
           type: integer
           description: Position in result list
+        abstract_summary:
+          type: string
+          nullable: true
+          description: |
+            One-sentence LLM-generated summary of the abstract.
+            Returned when the index has a cached summary; null otherwise.
+        justification:
+          type: string
+          nullable: true
+          description: |
+            Short explanation of why this paper matches the query/uploaded document.
+            Only populated for /search/upload responses (use case #2).
+
+    # ------------------------------------------------------------------ #
+    #  Q&A                                                                 #
+    # ------------------------------------------------------------------ #
 
     QARequest:
       type: object
-      required: [question]
+      required: [question, paper_ids]
       properties:
         question:
           type: string
@@ -273,14 +346,14 @@ components:
           maxLength: 2000
           description: Natural language question
           example: "What are the main approaches to self-supervised learning in computer vision?"
-        top_k:
-          type: integer
-          default: 5
-          minimum: 1
-          maximum: 20
-          description: Number of papers to retrieve as context
-        filters:
-          $ref: '#/components/schemas/SearchFilters'
+        paper_ids:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            type: string
+          description: arXiv IDs of the papers to answer the question over
+          example: ["2103.00020", "2002.05709"]
         model:
           type: string
           enum: [llama-3.1-8b, qwen-4b, deepseek-r1-7b]
@@ -297,15 +370,42 @@ components:
           description: LLM-generated answer grounded in retrieved papers
         sources:
           type: array
-          description: Papers used as context for the answer
+          description: Passage-level citations used as context for the answer
           items:
-            $ref: '#/components/schemas/SearchResult'
+            $ref: '#/components/schemas/PassageCitation'
         model:
           type: string
           description: Model used for generation
 
+    PassageCitation:
+      type: object
+      description: |
+        A specific passage within a paper that the LLM drew from when
+        generating its answer. Enables section-level grounding (use case #5).
+      properties:
+        paper:
+          $ref: '#/components/schemas/Paper'
+        section:
+          type: string
+          nullable: true
+          description: Section heading the passage is drawn from (e.g. "3.2 Results")
+        passage:
+          type: string
+          description: The exact excerpt from the paper used as evidence
+        score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Relevance score of this passage to the question
+
+    # ------------------------------------------------------------------ #
+    #  Papers                                                              #
+    # ------------------------------------------------------------------ #
+
     Paper:
       type: object
+      description: Core paper metadata returned in search results.
       properties:
         id:
           type: string
@@ -317,6 +417,16 @@ components:
         abstract:
           type: string
           description: Full abstract text
+        authors:
+          type: array
+          items:
+            type: string
+          description: Ordered list of author names
+          example: ["Alexey Dosovitskiy", "Lucas Beyer", "Alexander Kolesnikov"]
+        year:
+          type: integer
+          description: Year of publication
+          example: 2021
         terms:
           type: array
           items:
@@ -333,6 +443,37 @@ components:
           format: uri
           description: Direct PDF link
           example: "https://arxiv.org/pdf/2103.00020"
+
+    PaperDetail:
+      allOf:
+        - $ref: '#/components/schemas/Paper'
+        - type: object
+          description: |
+            Extended paper record returned by GET /papers/{arxiv_id}.
+            Adds citation export on top of the core Paper fields.
+          properties:
+            citation:
+              $ref: '#/components/schemas/CitationExport'
+
+    CitationExport:
+      type: object
+      description: Pre-formatted citation for the paper (use case #4).
+      properties:
+        style:
+          $ref: '#/components/schemas/CitationStyle'
+        formatted:
+          type: string
+          description: Ready-to-copy citation string in the requested style
+          example: |
+            @article{dosovitskiy2021image,
+              title={An Image is Worth 16x16 Words},
+              author={Dosovitskiy, Alexey and others},
+              year={2021}
+            }
+
+    # ------------------------------------------------------------------ #
+    #  Errors                                                              #
+    # ------------------------------------------------------------------ #
 
     ErrorResponse:
       type: object
