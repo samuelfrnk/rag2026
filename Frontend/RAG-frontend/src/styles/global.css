@@ -1,0 +1,26 @@
+/* =========================
+   RESET
+========================= */* 
+
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* =========================
+   PAGE BACKGROUND + TYPOGRAPHY
+========================= */
+body {
+  font-family: "Inter", "Roboto", sans-serif;
+  background: linear-gradient(180deg,rgba(223, 220, 204, 1) 0%, rgba(158, 186, 171, 1) 100%);
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+/* App root layout */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
