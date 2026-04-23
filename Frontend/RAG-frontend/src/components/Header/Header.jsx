@@ -9,7 +9,7 @@ export default function Header() {
       <img src={logo} alt="logo" className="logo" />
       <h1>YoPaLM</h1>
     
-      <p class="slogan">Your Paper Language Model</p>
+      <p className="slogan">Your Paper Language Model</p>
     </header>
   );
 }

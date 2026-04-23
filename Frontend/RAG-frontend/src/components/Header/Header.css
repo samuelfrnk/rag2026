@@ -11,6 +11,7 @@
   width: auto;           /* keeps aspect ratio */
   object-fit: contain;   /* prevents distortion */
   margin: auto;             /* centers the image */
+  margin-bottom: 0rem;
 }
 .logo:hover {
   transform: scale(1.1);
@@ -19,15 +20,12 @@
 
 h1 {
   color: #5d3a8c;
-  margin: 0rem;
+  margin-bottom: 0rem;
   font-family: "JetBrains Mono", Consolas, monospace;
 }
 
 p.slogan {
   color: #6129ab;
+  margin-top: 5px 0;
 }
 
-p.info {
-  color: #444;
-  font-size: 0.6rem;
-}
