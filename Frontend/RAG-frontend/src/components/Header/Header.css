@@ -18,9 +18,10 @@
   transition: 0.2s;
 }
 
-h1 {
+p.title {
   color: #5d3a8c;
-  margin-bottom: 0rem;
+  font-size: 2.5rem;
+  font-weight: 700;
   font-family: "JetBrains Mono", Consolas, monospace;
 }
 
