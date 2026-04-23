@@ -1,8 +1,7 @@
 import { useState } from "react";
-import Header from "./components/Header/Header";
-import SearchForm from "./components/SearchForm/SearchForm";
 import Results from "./pages/Results";
 import { Routes, Route, useNavigate } from "react-router-dom";
+import Home from "./pages/Home";
 
 function App() {
   const navigate = useNavigate();
@@ -49,14 +48,14 @@ function App() {
 
   return (
     <div>
-      <Header />
+      {/* <Header /> */}
 
       <Routes>
         {/* HOME */}
         <Route
           path="/"
           element={
-            <SearchForm
+            <Home
               onSearch={handleSearch}
               keywords={keywords}
               setKeywords={setKeywords}

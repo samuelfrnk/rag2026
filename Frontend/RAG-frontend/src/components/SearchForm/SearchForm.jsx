@@ -68,6 +68,7 @@ export default function SearchForm({
 
     if (!canSubmit) return;
 
+  
     onSearch(); // App handles validation + processing + backend
   };
 
@@ -78,7 +79,7 @@ export default function SearchForm({
       <div className="keyword-section">
 
         <p className="keyword-label">
-          Enter keywords to find relevant papers and optionally add weighting (1-5).
+          Enter keywords to find relevant papers and optionally add weighting (1-3).
         </p>
 
         <p className="info">
