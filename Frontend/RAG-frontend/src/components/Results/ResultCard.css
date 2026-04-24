@@ -1,0 +1,17 @@
+.results-layout {
+  display: flex;
+}
+
+/* RIGHT SIDE */
+.results-main {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+/* optional: nicer paper cards */
+.paper-card {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}

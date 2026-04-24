@@ -1,0 +1,23 @@
+.results-layout {
+  display: flex;
+}
+
+/* RIGHT SIDE */
+.results-main {
+  flex: 1;
+  padding: 2.5rem 1.5rem 1.5rem 1.5rem;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+/* optional: nicer paper cards */
+.paper-card {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+h2.title {
+  color: #5d3a8c;
+  font-size: 1.6rem;
+  font-weight: 600;
+}

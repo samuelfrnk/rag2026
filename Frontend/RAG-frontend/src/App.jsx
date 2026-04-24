@@ -22,6 +22,8 @@ function App() {
     setLoading(true);
     setError(null);
 
+    navigate("/results");
+
     try {
       const results = await new Promise((resolve) => {
         setTimeout(() => {
@@ -33,11 +35,11 @@ function App() {
               abstract: "We propose a new architecture..."
             }
           ]);
-        }, 1000);
+        }, 10000);
       });
 
       setPapers(results);
-      navigate("/results");
+      
 
     } catch (err) {
       setError("Failed to fetch papers.");
@@ -76,7 +78,15 @@ function App() {
         <Route
           path="/results"
           element={
-            <Results papers={papers} loading={loading} error={error} />
+            <Results 
+              papers={papers} 
+              loading={loading} 
+              error={error} 
+              total={numPapers}
+              keywords={keywords}
+              text={text}
+              file={file}
+              />
           }
         />
       </Routes>
