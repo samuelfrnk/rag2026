@@ -1,17 +1,95 @@
-.results-layout {
-  display: flex;
-}
+.result-card {
 
-/* RIGHT SIDE */
-.results-main {
-  flex: 1;
-  padding: 1.5rem;
-  overflow-y: auto;
-  height: 100vh;
-}
-
-/* optional: nicer paper cards */
-.paper-card {
   padding: 1rem;
-  border-bottom: 1px solid #eee;
+  margin-bottom: 1rem;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: white;
+  opacity: 0.8;
+
+  transition: 0.2s;
+  text-align: left;
+  word-wrap: break-word;
+  overflow: overlay;
+
+  width: 60%;
+}
+
+.result-header {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 70%
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 30%;
+
+}
+
+
+.result-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+
+.result-rank {
+  font-weight: bold;
+  color: #5d3a8c;
+}
+
+
+.result-content {
+  flex: 1;
+}
+
+.result-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.result-meta {
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.result-abstract {
+  font-size: 0.8rem;
+  color: #333;
+  word-break: break-word;
+}
+
+.result-score {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #5d3a8c;
+}
+
+.expand-btn {
+  border: none;
+  background: none;
+  color: #5d3a8c;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+a.doi-link {
+  color: #5d3a8c;
+  text-decoration: none;
+}
+
+a.doi-link:visited {
+  color: #9c5af1;
 }

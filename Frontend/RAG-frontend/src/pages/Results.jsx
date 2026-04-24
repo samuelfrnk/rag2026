@@ -1,5 +1,6 @@
 import ProgressBar from "../components/ProgressBar/ProgressBar";
 import Sidebar from "../components/Sidebar/Sidebar";
+import ResultCard from "../components/Results/ResultCard";
 import "./Results.css";
 
 export default function Results({ papers, loading, error, total, keywords, text, file }) {
@@ -24,15 +25,13 @@ export default function Results({ papers, loading, error, total, keywords, text,
 
         {loading && <ProgressBar total={total} />}
 
-        {!loading &&
-          papers.map((paper, i) => (
-            <div key={i} className="paper-card">
-              <h3>{paper.title}</h3>
-              <p>{paper.authors}</p>
-              <p>{paper.year}</p>
-              <p>{paper.abstract}</p>
-            </div>
-          ))}
+
+        <div className="result-cards">
+          {!loading &&
+            papers.map((paper, i) => (
+              <ResultCard key={paper.id || i} paper={paper} index={i} />
+            ))}
+        </div>
 
         {/* <Filters /> */}
 
