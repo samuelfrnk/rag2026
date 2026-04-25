@@ -72,6 +72,26 @@ Frontend → `https://<frontend-hash>.app.az.nuvolos.cloud/proxy/3000/`
 
 ---
 
+## Project structure
+
+```
+Backend/
+├── core/
+│   ├── embedder.py      — sentence-transformer model (load + embed)
+│   ├── retriever.py     — FAISS index + metadata (load + search)
+│   ├── generator.py     — LLM (load + build_prompt + generate)
+│   └── pdf.py           — PDF text extraction
+├── Gateway/
+│   ├── main.py          — FastAPI routes (imports from core/)
+│   ├── requirements.txt
+│   ├── start.sh
+│   └── .venv/           — Python virtual environment (gitignored)
+├── arxiv.faiss          — pre-built FAISS vector index
+└── arxiv_meta.json      — paper metadata (title, abstract, terms)
+```
+
+---
+
 ## API endpoints
 
 | Method | Path | Description |
