@@ -21,17 +21,10 @@ from core import embedder, retriever, generator, pdf
 # ---------------------------------------------------------------------------
 # Pydantic schemas
 # ---------------------------------------------------------------------------
-class SearchFilters(BaseModel):
-    year_from:  Optional[int]       = None
-    year_to:    Optional[int]       = None
-    categories: Optional[List[str]] = None
-
-
 class SearchRequest(BaseModel):
-    query:   str                    = Field(..., min_length=1, max_length=1000)
-    top_k:   int                    = Field(default=10, ge=1, le=50)
-    sort_by: str                    = Field(default="relevance")
-    filters: Optional[SearchFilters] = None
+    query:   str = Field(..., min_length=1, max_length=1000)
+    top_k:   int = Field(default=10, ge=1, le=50)
+    sort_by: str = Field(default="relevance")
 
 
 class Paper(BaseModel):
@@ -162,8 +155,7 @@ def health():
 
 @app.post("/search", response_model=SearchResponse)
 def search_papers(req: SearchRequest):
-    categories = req.filters.categories if req.filters else None
-    results_raw = retriever.search(req.query, req.top_k, categories)
+    results_raw = retriever.search(req.query, req.top_k)
 
     if req.sort_by == "year":
         results_raw.sort(key=lambda r: r.get("year", 0), reverse=True)
