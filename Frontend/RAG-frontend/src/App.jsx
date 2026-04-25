@@ -2,6 +2,7 @@ import { useState } from "react";
 import Results from "./pages/Results";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
+import { searchPapers } from "./services/api";
 
 function App() {
   const navigate = useNavigate();
@@ -23,24 +24,28 @@ function App() {
     setError(null);
 
     try {
-      const results = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve([
-            {
-              title: "Attention Is All You Need",
-              authors: "Vaswani et al.",
-              year: 2017,
-              abstract: "We propose a new architecture..."
-            }
-          ]);
-        }, 1000);
+      const query = keywords.map((k) => k.term).join(" ");
+      const data = await searchPapers({
+        query: query + (text ? " " + text : ""),
+        top_k: numPapers,
+        sort_by: "relevance",
       });
 
-      setPapers(results);
-      navigate("/results");
+      // Map API response shape → flat paper objects for Results page
+      const mapped = (data.results || []).map((r) => ({
+        title:    r.paper.title,
+        authors:  r.paper.authors ? r.paper.authors.join(", ") : null,
+        year:     r.paper.year,
+        abstract: r.paper.abstract,
+        score:    r.score,
+        terms:    r.paper.terms,
+        id:       r.paper.id,
+      }));
 
+      setPapers(mapped);
+      navigate("/results");
     } catch (err) {
-      setError("Failed to fetch papers.");
+      setError("Failed to fetch papers. Is the backend running?");
     } finally {
       setLoading(false);
     }

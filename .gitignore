@@ -3,3 +3,9 @@
 .AppleDouble
 .LSOverride
 __MACOSX
+
+# Python virtual envs
+.venv/
+venv/
+__pycache__/
+*.pyc
