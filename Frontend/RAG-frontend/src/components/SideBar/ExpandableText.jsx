@@ -14,7 +14,7 @@ export default function ExpandableText({ text }) {
       </p>
 
       <button
-        className="expand-btn"
+        className="expand-btn-dark"
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? "Collapse Text ↑" : "Full Text ↓"}
