@@ -10,7 +10,8 @@
   height: 100vh;
 }
 
-/* optional: nicer paper cards */
+
+
 .paper-card {
   padding: 1rem;
   border-bottom: 1px solid #eee;
@@ -21,6 +22,14 @@ h2.title {
   font-size: 1.6rem;
   font-weight: 600;
 }
+
+.disclaimer {
+  font-size: 0.7rem;
+  color: #888;
+  padding: 0 3.5rem 0 3.5rem;
+  text-align: center;
+}
+
 
 .result-cards {
   display: flex;

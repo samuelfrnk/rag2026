@@ -1,0 +1,71 @@
+/* Filters.css */
+.filters {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+}
+
+.filter-group label {
+  margin-bottom: 0.3rem;
+}
+
+/* -- Dropdown wrapper -- */
+.filter-dropdown {
+  position: relative;
+  width: 7rem;
+}
+
+/* -- Closed box -- */
+.filter-dropdown-selected {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.4rem 0.8rem;
+  border-radius: 1rem;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  user-select: none;
+}
+
+.filter-arrow {
+  margin-left: 6px;
+  font-size: 0.8rem;
+}
+
+/* -- Dropdown list -- */
+.filter-dropdown-menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 0.8rem;       /* ← rounded corners */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+  z-index: 10;
+}
+
+/* -- Items -- */
+.filter-dropdown-item {
+  padding: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.filter-dropdown-item:hover {
+  background: #ecf2f3;        
+}
+
+.filter-dropdown-item.active {
+  background: #ecf2f3;        
+}
