@@ -1,5 +1,7 @@
 import { useState } from "react";
 import "./ResultCard.css";
+import { resolveCategories } from "../../utils/categoryMap"; 
+
 
 export default function ResultCard({ paper, index }) {
   const [expanded, setExpanded] = useState(false); 
@@ -10,6 +12,8 @@ export default function ResultCard({ paper, index }) {
     paper.abstract && paper.abstract.length > previewLength
       ? paper.abstract.slice(0, previewLength)
       : paper.abstract;
+
+  const resolvedCategories = resolveCategories(paper.categories);
 
   return (
     <div className="result-card">
@@ -42,6 +46,19 @@ export default function ResultCard({ paper, index }) {
         >
           {paper.doi}
         </a>
+      </p>
+
+      { /* category tags */ }
+      <p className="result-categories">
+        category tag(s): {"  "}  
+        {resolvedCategories.length > 0 
+            ?  resolvedCategories.map((label) => (
+            <span key={label} className="category-tag">
+              {label}
+            </span>
+          ))
+          : <span className="category-tag">Unknown Category</span>
+        }
       </p>
 
       {/* ABSTRACT */}
