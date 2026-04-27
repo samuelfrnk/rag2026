@@ -39,11 +39,18 @@ def generate_answer(prompt):
     from models import APP_STATE
     
     tokenizer = APP_STATE['tokenizer']
-    model = APP_STATE['model']
+    model = APP_STATE['llm']
     
     try:
-        messages = [{ "role": "user", "content": prompt }]
-        input_ids = tokenizer.apply_chat_template(messages, return_tensors="pt", add_generation_prompt=True).to(DEVICE)
+        messages  = [{"role": "user", "content": prompt}]
+        input_ids = tokenizer.apply_chat_template(
+            messages,
+            return_tensors        = "pt",
+            add_generation_prompt = True,
+        )
+        if hasattr(input_ids, "input_ids"):
+            input_ids = input_ids.input_ids
+        input_ids = input_ids.to(DEVICE)
     except Exception:
         input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(DEVICE)
         
@@ -63,15 +70,21 @@ def generate_chat_answer(messages):
     from models import APP_STATE
     
     tokenizer = APP_STATE['tokenizer']
-    model = APP_STATE['model']
+    model = APP_STATE['llm']
     
     try:
-        input_ids = tokenizer.apply_chat_template(messages, return_tensors="pt", add_generation_prompt=True).to(DEVICE)
+        input_ids = tokenizer.apply_chat_template(
+            messages,
+            return_tensors        = "pt",
+            add_generation_prompt = True,
+        )
+        if hasattr(input_ids, "input_ids"):
+            input_ids = input_ids.input_ids
+        input_ids = input_ids.to(DEVICE)
     except Exception:
         flat = "\n".join(
             f"{m['role'].capitalize()}: {m['content']}" for m in messages
         ) + "\nAssistant:"
-        
         input_ids = tokenizer(flat, return_tensors="pt").input_ids.to(DEVICE)
         
     with torch.no_grad():

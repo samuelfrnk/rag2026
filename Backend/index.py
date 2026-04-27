@@ -37,7 +37,7 @@ def retrieve(query: str, top_k: int) -> list[dict]:
     q_emb = embed_model.encode([query], convert_to_numpy=True)
     q_emb = (q_emb / (np.linalg.norm(q_emb, axis=1, keepdims=True) + 1e-10)).astype(np.float32)
 
-    scores, ids = index.search(q_emb, top_k)
+    scores, ids = index.search(q_emb, int(top_k))
 
     results = []
     for score, idx in zip(scores[0], ids[0]):

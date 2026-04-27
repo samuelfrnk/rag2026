@@ -3,6 +3,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from index import retrieve
 from pdf import extract_pdf_text
 from schemas import Paper, SearchResponse
+from pipeline import build_prompt, generate_answer
 
 router = APIRouter(tags=["Search"])
 

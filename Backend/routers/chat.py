@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile, Form
 
 from index    import retrieve
 from pdf      import extract_pdf_text
@@ -14,15 +14,17 @@ SESSIONS: dict[str, list[dict]] = {}
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(
-    req: ChatRequest,
-    pdf: Optional[UploadFile] = File(None, description="Optional PDF to attach to this turn"),
+    message   : str            = Form(...),
+    top_k     : int            = Form(5),
+    session_id: Optional[str]  = Form(None),
+    pdf       : Optional[UploadFile] = File(None),
 ):
     """
     Send session_id=null on the first turn.
     Pass the returned session_id on every subsequent turn to keep context.
     A PDF attached here is injected as context for this turn only.
     """
-    sid = req.session_id or str(uuid.uuid4())
+    sid = session_id or str(uuid.uuid4())
     if sid not in SESSIONS:
         SESSIONS[sid] = []
     history = SESSIONS[sid]
@@ -33,9 +35,9 @@ async def chat(
         pdf_context = extract_pdf_text(raw, max_chars=3000)
 
     retrieval_query = (
-        f"{pdf_context[:500]} {req.message}".strip() if pdf_context else req.message
+        f"{pdf_context[:500]} {message}".strip() if pdf_context else message
     )
-    retrieved = retrieve(retrieval_query, top_k=req.top_k)
+    retrieved = retrieve(retrieval_query, top_k=top_k)
 
     context_blocks = []
     for i, r in enumerate(retrieved, 1):
@@ -59,8 +61,8 @@ async def chat(
     )
 
     user_content = (
-        f"[PDF attached — {len(pdf_context)} chars]\n\n{req.message}"
-        if pdf_context else req.message
+        f"[PDF attached — {len(pdf_context)} chars]\n\n{message}"
+        if pdf_context else message
     )
 
     messages = [{"role": "system", "content": system_content}]

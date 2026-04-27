@@ -9,7 +9,7 @@ else:
     DEVICE = "cpu"
     
 CFG = {
-    "data_path" : "/Users/merterol/Desktop/rag2026/Data/cleaned_datasets/arxiv_data_22_04_cleaned.csv",
+    "data_path" : "/files/rag2026/Data/cleaned_datasets/arxiv_data_22_04_cleaned.csv",
     "col_title" : "titles",
     "col_abstract" : "abstracts",
     "col_categories" : "categories",
@@ -20,14 +20,14 @@ CFG = {
     "col_entry_id" : "entry_ids",
     
     
-    "embed_model" : "sentence-transformers/all-mpnet-base-v2",
+    "embed_model" : "sentence-transformers/all-MiniLM-L6-v2",
     "embed_batch" : 64,
     "embed_dim" : 256,
     
     "index_path" : "arxiv.faiss",
-    "meta:path" : "arxiv_meta.json",
+    "meta_path" : "arxiv_meta.json",
     
-    "llm_model" : "eepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+    "llm_model" : "Qwen/Qwen2.5-0.5B-Instruct",
     "llm_max_tokens" : 2048,
     "llm_temperature" : 0.7,
     "llmn_load_in_4bit" : False,
