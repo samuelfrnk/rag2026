@@ -9,7 +9,7 @@ APP_STATE = {}
 
 def load_embed_model():
     print("Loading embedding model...")
-    model = SentenceTransformer(CFG['embed_model'], device=DEVICE)
+    model = SentenceTransformer(CFG['embed_model'], device="cpu")
     print(f"[startup] Embedding model loaded on {DEVICE}")
     print(f"[startup] Embedding dim: {model.get_sentence_embedding_dimension()}")
     return model

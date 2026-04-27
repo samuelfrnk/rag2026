@@ -21,6 +21,7 @@ CFG = {
     
     
     "embed_model" : "sentence-transformers/all-mpnet-base-v2",
+    "embed_batch" : 64,
     "embed_dim" : 256,
     
     "index_path" : "arxiv.faiss",

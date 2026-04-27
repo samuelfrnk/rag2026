@@ -16,6 +16,8 @@ You only need to re-run this if:
     - You change the embedding model in config.py
     - You delete the cache files
 """
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 import json
 import time
@@ -25,11 +27,10 @@ import faiss
 import numpy as np
 import pandas as pd
 import torch
-from sentence_transformers import SentenceTransformer
+from transformers import AutoTokenizer, AutoModel
 from tqdm.auto import tqdm
 
 from config import CFG, DEVICE
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -60,17 +61,28 @@ def load_dataset() -> pd.DataFrame:
     return df
 
 
-def embed_texts(texts: list[str], model: SentenceTransformer) -> np.ndarray:
-    batch_size = CFG["embed_batch"]
-    all_embs   = []
+def mean_pool(token_embeddings: torch.Tensor, attention_mask: torch.Tensor) -> np.ndarray:
+    """Mean pooling over token embeddings, masked by attention."""
+    mask_expanded = attention_mask.unsqueeze(-1).float()
+    summed  = (token_embeddings * mask_expanded).sum(dim=1)
+    counts  = mask_expanded.sum(dim=1).clamp(min=1e-10)
+    pooled  = (summed / counts).detach().cpu().numpy()
+    pooled  = pooled / (np.linalg.norm(pooled, axis=1, keepdims=True) + 1e-10)
+    return pooled.astype(np.float32)
 
-    for i in tqdm(range(0, len(texts), batch_size), desc="Embedding batches"):
-        batch = texts[i : i + batch_size]
-        embs  = model.encode(batch, convert_to_numpy=True, show_progress_bar=False)
-        # L2-normalise so inner product == cosine similarity
-        embs  = embs / (np.linalg.norm(embs, axis=1, keepdims=True) + 1e-10)
-        all_embs.append(embs.astype(np.float32))
 
+def embed_texts(texts: list[str], tokenizer, model, batch_size: int = 32) -> np.ndarray:
+    all_embs = []
+    model.eval()
+    with torch.no_grad():
+        for i in tqdm(range(0, len(texts), batch_size), desc="Embedding"):
+            batch  = texts[i : i + batch_size]
+            inputs = tokenizer(batch, padding=True, truncation=True,
+                                max_length=512, return_tensors="pt")
+            # keep everything on CPU — avoids MPS segfault entirely
+            outputs = model(**inputs)
+            embs    = mean_pool(outputs.last_hidden_state, inputs["attention_mask"])
+            all_embs.append(embs)
     return np.vstack(all_embs)
 
 
@@ -137,8 +149,11 @@ def main():
 
     # 2. Load embedding model
     print(f"\nLoading embedding model …")
-    embed_model = SentenceTransformer(CFG["embed_model"], device=DEVICE)
-    print(f"Embedding dim: {embed_model.get_sentence_embedding_dimension()}\n")
+    hf_model_id = CFG["embed_model"].replace("sentence-transformers/", "")
+    tokenizer = AutoTokenizer.from_pretrained(f"sentence-transformers/{hf_model_id}", use_fast=False)
+    embed_model = AutoModel.from_pretrained(f"sentence-transformers/{hf_model_id}")
+    embed_model.eval()
+    print(f"Embedding dim: {embed_model.config.hidden_size}\n")
 
     # 3. Build combined text field for embedding (title + abstract)
     texts = (
@@ -149,7 +164,7 @@ def main():
 
     # 4. Embed
     print(f"Embedding {len(texts):,} papers …")
-    embeddings = embed_texts(texts, embed_model)
+    embeddings = embed_texts(texts, tokenizer, embed_model, batch_size=CFG["embed_batch"])
 
     # 5. Build FAISS index
     print("\nBuilding FAISS index …")
