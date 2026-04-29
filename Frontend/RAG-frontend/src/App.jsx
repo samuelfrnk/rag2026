@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Results from "./pages/Results";
+import IndvPaper from "./pages/indv_paper";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import dummyPapers from "./data/dummyPapers";
@@ -84,6 +85,7 @@ function App() {
               />
           }
         />
+        <Route path="/indv_paper/:id" element={<IndvPaper keywords={keywords} text={text} file={file} />} />
       </Routes>
     </div>
   );

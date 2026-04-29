@@ -1,10 +1,17 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./ResultCard.css";
 import { resolveCategories } from "../../utils/categoryMap"; 
 
 
 export default function ResultCard({ paper, index }) {
   const [expanded, setExpanded] = useState(false); 
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    localStorage.setItem("selectedPaper", JSON.stringify(paper));
+    navigate(`/indv_paper/${paper.id || index}`, { state: { paper } });
+  };
 
   const previewLength = 200;
 
@@ -16,7 +23,7 @@ export default function ResultCard({ paper, index }) {
   const resolvedCategories = resolveCategories(paper.categories);
 
   return (
-    <div className="result-card">
+    <div className="result-card clickable" onClick={handleCardClick}>
 
       {/* HEADER */}
       <div className="result-header">
@@ -43,6 +50,7 @@ export default function ResultCard({ paper, index }) {
           target="_blank"
           rel="noopener noreferrer"
           className="doi-link"
+          onClick={(event) => event.stopPropagation()}
         >
           {paper.doi}
         </a>
@@ -70,7 +78,10 @@ export default function ResultCard({ paper, index }) {
       {paper.abstract && paper.abstract.length > previewLength && (
         <button
           className="expand-btn"
-          onClick={() => setExpanded(!expanded)}
+          onClick={(event) => {
+            event.stopPropagation();
+            setExpanded(!expanded);
+          }}
         >
           {expanded ? "▲ Show less" : "▼ Show full abstract"}
         </button>
