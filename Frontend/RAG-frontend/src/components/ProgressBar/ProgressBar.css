@@ -3,6 +3,13 @@
   margin: 1rem 0;
 }
 
+.progress-title {
+  font-size: 1.4rem;
+  text-align: center;
+  color: #5d3a8c;
+  font-style: italic;
+}
+
 .progress-bar {
   width: 100%;
   height: 1.3rem;

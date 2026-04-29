@@ -23,7 +23,11 @@ export default function ProgressBar({ total = 10 }) {
 
   return (
     <div className="progress-wrapper">
+      <div className="progress-title">
+          Retrieving papers...
+        </div>
       <div className="progress-bar">
+        
         <div
           className="progress-fill"
           style={{ width: `${percent}%` }}
