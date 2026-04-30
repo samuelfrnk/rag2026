@@ -24,8 +24,8 @@ CFG = {
     "embed_batch" : 64,
     "embed_dim" : 256,
     
-    "index_path" : "arxiv.faiss",
-    "meta_path" : "arxiv_meta.json",
+    "index_path" : "/files/tmp/arxiv.faiss",
+    "meta_path" : "/files/tmp/arxiv_meta.json",
     
     "llm_model" : "Qwen/Qwen2.5-0.5B-Instruct",
     "llm_max_tokens" : 4096,

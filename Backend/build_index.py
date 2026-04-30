@@ -168,9 +168,18 @@ def main():
 
     # 5. Build FAISS index
     print("\nBuilding FAISS index …")
+    if Path(CFG["index_path"]).exists():
+        print(f"Index already exists at '{CFG['index_path']}' — delete it to rebuild.")
+        return
+    
     index = build_faiss_index(embeddings)
-
+    
     # 6. Build metadata
+    print("\nBuilding metadata …")
+    if Path(CFG["meta_path"]).exists():
+        print(f"Metadata already exists at '{CFG['meta_path']}' — delete it to rebuild.")
+        return
+    
     meta = build_meta(df)
 
     # 7. Save to disk
