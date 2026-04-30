@@ -1,0 +1,122 @@
+.result-card {
+
+  padding: 1rem;
+  margin-bottom: 1rem;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: white;
+  opacity: 0.8;
+
+  transition: 0.2s;
+  text-align: left;
+  word-wrap: break-word;
+  overflow: overlay;
+
+  width: 75%;
+}
+
+.result-card.clickable {
+  cursor: pointer;
+}
+
+.result-header {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 70%
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 25%;
+
+}
+
+
+.result-card.clickable {
+  cursor: pointer;
+}
+
+.result-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  transform: translateY(-4px);
+}
+
+.result-rank {
+  font-weight: bold;
+}
+
+
+.result-content {
+  flex: 1;
+}
+
+.result-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.result-meta {
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.result-categories {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.7rem;
+  font-style: italic;
+  color: #777;
+  align-items: center;
+}
+
+.category-tag {
+  background: #e0e9e5;
+  padding: 0.07rem 0.35rem;
+  border-radius: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+.result-abstract {
+  font-size: 0.8rem;
+  color: #333;
+  word-break: break-word;
+}
+
+.result-score {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #5d3a8c;
+}
+
+.expand-btn {
+  border: none;
+  background: none;
+  color: #5d3a8c;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+a.doi-link {
+  color: #5d3a8c;
+  text-decoration: none;
+}
+
+a.doi-link:visited {
+  color: #9c5af1;
+}
