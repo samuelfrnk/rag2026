@@ -39,7 +39,7 @@ print("Bot:", data["answer"])
 # Chat turn 2
 r = requests.post(
     f"{BASE}/chat",
-    data={"session_id": sid, "message": "What is the core mechanism of the first paper you cited?", "top_k": 3}
+    data={"session_id": sid, "message": "What is the core mechanism of the paper [Paper 1] you cited?", "top_k": 3}
 )
 print("\nChat turn 2 status:", r.status_code)
 if r.status_code != 200:
