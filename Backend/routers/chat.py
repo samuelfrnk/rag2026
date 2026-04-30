@@ -34,9 +34,14 @@ async def chat(
         raw         = await pdf.read()
         pdf_context = extract_pdf_text(raw, max_chars=3000)
 
+    last_assistant = ""
+    if len(history) >= 2:
+        last_assistant = history[-1]["content"]   # last bot answer
+    
     retrieval_query = (
-        f"{pdf_context[:500]} {message}".strip() if pdf_context else message
+        f"{last_assistant} {message}".strip() if last_assistant else message
     )
+
     retrieved = retrieve(retrieval_query, top_k=top_k)
 
     context_blocks = []
@@ -54,6 +59,9 @@ async def chat(
     system_content = (
         "You are a helpful scientific assistant. "
         "Answer the user's question using the retrieved papers below. "
+        "Enumerate and list all papers that you found."
+        "You MUST reference ALL retrieved papers in your answer, "
+        "even if briefly. Cite each one at least once using [Paper N]."
         "Cite papers by number, e.g. [Paper 1]."
         + (" Refer to the attached PDF as [Attached PDF]." if pdf_context else "")
         + "\n\n=== RETRIEVED PAPERS ===\n"

@@ -24,6 +24,7 @@ def build_prompt(query, retrieved, pdf_context = ""):
     return (
         "You are a helpful scientific assistant. "
         "Use ONLY the papers provided below to answer the user's question. "
+        "Enumerate and list all papers that you found."
         "Cite papers by their number, e.g. [Paper 1], and quote the specific claim "
         "from the abstract that supports your answer."
         f"{pdf_note} "
@@ -57,6 +58,7 @@ def generate_answer(prompt):
     with torch.no_grad():
         output_ids = model.generate(
             input_ids,
+            attention_mask = torch.ones_like(input_ids),
             max_new_tokens = CFG["llm_max_tokens"],
             temperature = CFG["llm_temperature"],
             do_sample = CFG["llm_temperature"] > 0,
@@ -90,6 +92,7 @@ def generate_chat_answer(messages):
     with torch.no_grad():
         output_ids = model.generate(
             input_ids,
+            attention_mask = torch.ones_like(input_ids),
             max_new_tokens = CFG["llm_max_tokens"],
             temperature = CFG["llm_temperature"],
             do_sample = CFG["llm_temperature"] > 0,

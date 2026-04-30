@@ -28,9 +28,9 @@ CFG = {
     "meta_path" : "arxiv_meta.json",
     
     "llm_model" : "Qwen/Qwen2.5-0.5B-Instruct",
-    "llm_max_tokens" : 2048,
+    "llm_max_tokens" : 4096,
     "llm_temperature" : 0.7,
     "llmn_load_in_4bit" : False,
     
-    "top_k" : 5,
+    "top_k" : 8,
 }
