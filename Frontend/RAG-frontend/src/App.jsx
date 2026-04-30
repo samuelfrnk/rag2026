@@ -2,7 +2,7 @@ import { useState } from "react";
 import Results from "./pages/Results";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
-import { searchPapers } from "./services/api";
+import { searchPapers, pingBackend } from "./services/api";
 
 function App() {
   const navigate = useNavigate();
@@ -18,6 +18,22 @@ function App() {
   const [numPapers, setNumPapers] = useState(4);
 
   const canSubmit = keywords.length > 0;
+
+  const [pingResult, setPingResult] = useState(null);
+  const [pinging, setPinging] = useState(false);
+
+  const handlePing = async () => {
+    setPinging(true);
+    setPingResult(null);
+    try {
+      const data = await pingBackend();
+      setPingResult({ ok: true, message: JSON.stringify(data) });
+    } catch (err) {
+      setPingResult({ ok: false, message: err.message });
+    } finally {
+      setPinging(false);
+    }
+  };
 
   const handleSearch = async () => {
     setLoading(true);
@@ -53,7 +69,16 @@ function App() {
 
   return (
     <div>
-      {/* <Header /> */}
+      <div style={{ textAlign: "center", margin: "1rem 0" }}>
+        <button onClick={handlePing} disabled={pinging}>
+          {pinging ? "Pinging…" : "Ping Backend"}
+        </button>
+        {pingResult && (
+          <p style={{ color: pingResult.ok ? "green" : "red", marginTop: "0.5rem" }}>
+            {pingResult.ok ? "✓ " : "✗ "}{pingResult.message}
+          </p>
+        )}
+      </div>
 
       <Routes>
         {/* HOME */}
