@@ -95,3 +95,35 @@ def generate(prompt: str, max_new_tokens: int = 512, temperature: float = 0.7) -
 
     new_tokens = out[0][input_ids.shape[-1]:]
     return _tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
+
+
+def generate_chat(messages: list, max_new_tokens: int = 512, temperature: float = 0.7) -> str:
+    """Run the LLM on a full messages list (system/user/assistant turns) for multi-turn chat."""
+    if _model is None or _tokenizer is None:
+        raise RuntimeError("Generator not loaded. Call generator.load() first.")
+
+    device = next(_model.parameters()).device
+    try:
+        input_ids = _tokenizer.apply_chat_template(
+            messages, return_tensors="pt", add_generation_prompt=True
+        )
+        if hasattr(input_ids, "input_ids"):
+            input_ids = input_ids.input_ids
+        input_ids = input_ids.to(device)
+    except Exception:
+        flat = "\n".join(
+            f"{m['role'].capitalize()}: {m['content']}" for m in messages
+        ) + "\nAssistant:"
+        input_ids = _tokenizer(flat, return_tensors="pt").input_ids.to(device)
+
+    with torch.no_grad():
+        out = _model.generate(
+            input_ids,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            do_sample=temperature > 0,
+            pad_token_id=_tokenizer.eos_token_id,
+        )
+
+    new_tokens = out[0][input_ids.shape[-1]:]
+    return _tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
