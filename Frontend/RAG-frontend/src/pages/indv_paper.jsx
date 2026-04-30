@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { resolveCategories } from "../utils/categoryMap";
 import "./IndvPaper.css";
 
 export default function IndvPaper() {
+  const [expandAbstract, setExpandAbstract] = useState(false);
   const location = useLocation();
   const params = useParams();
   const paperFromState = location.state?.paper;
@@ -80,7 +82,33 @@ export default function IndvPaper() {
 
         <div className="indv-abstract">
           <h2>Abstract</h2>
-          <p>{paper.abstract}</p>
+          <div style={{ position: "relative" }}>
+            <p>
+              {expandAbstract 
+                ? paper.abstract 
+                : paper.abstract.length > 300 
+                  ? paper.abstract.slice(0, 300) + "..." 
+                  : paper.abstract
+              }
+            </p>
+            {paper.abstract.length > 300 && (
+              <button
+                onClick={() => setExpandAbstract(!expandAbstract)}
+                style={{
+                  position: "absolute",
+                  bottom: "0",
+                  right: "0",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1.2em",
+                  padding: "0 5px"
+                }}
+              >
+                {expandAbstract ? "▲" : "▼"}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="chatbot-area">
