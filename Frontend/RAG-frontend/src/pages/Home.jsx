@@ -4,7 +4,7 @@ import SearchForm from "../components/SearchForm/SearchForm";
 import ModeToggle from "../components/ModeToggle/ModeToggle";
 
 export default function Home(props) {
-  const [mode, setMode] = useState("search"); // ✅ now inside component
+  const [mode, setMode] = useState("search");
 
   return (
     <>

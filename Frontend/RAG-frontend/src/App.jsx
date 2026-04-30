@@ -2,6 +2,7 @@ import { useState } from "react";
 import Results from "./pages/Results";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
+import { searchPapers, pingBackend } from "./services/api";
 
 function App() {
   const navigate = useNavigate();
@@ -18,29 +19,49 @@ function App() {
 
   const canSubmit = keywords.length > 0;
 
+  const [pingResult, setPingResult] = useState(null);
+  const [pinging, setPinging] = useState(false);
+
+  const handlePing = async () => {
+    setPinging(true);
+    setPingResult(null);
+    try {
+      const data = await pingBackend();
+      setPingResult({ ok: true, message: JSON.stringify(data) });
+    } catch (err) {
+      setPingResult({ ok: false, message: err.message });
+    } finally {
+      setPinging(false);
+    }
+  };
+
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const results = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve([
-            {
-              title: "Attention Is All You Need",
-              authors: "Vaswani et al.",
-              year: 2017,
-              abstract: "We propose a new architecture..."
-            }
-          ]);
-        }, 1000);
+      const query = keywords.map((k) => k.term).join(" ");
+      const data = await searchPapers({
+        query: query + (text ? " " + text : ""),
+        top_k: numPapers,
+        sort_by: "relevance",
       });
 
-      setPapers(results);
-      navigate("/results");
+      // Map API response shape → flat paper objects for Results page
+      const mapped = (data.results || []).map((r) => ({
+        title:    r.paper.title,
+        authors:  r.paper.authors ? r.paper.authors.join(", ") : null,
+        year:     r.paper.year,
+        abstract: r.paper.abstract,
+        score:    r.score,
+        terms:    r.paper.terms,
+        id:       r.paper.id,
+      }));
 
+      setPapers(mapped);
+      navigate("/results");
     } catch (err) {
-      setError("Failed to fetch papers.");
+      setError("Failed to fetch papers. Is the backend running?");
     } finally {
       setLoading(false);
     }
@@ -48,7 +69,16 @@ function App() {
 
   return (
     <div>
-      {/* <Header /> */}
+      <div style={{ textAlign: "center", margin: "1rem 0" }}>
+        <button onClick={handlePing} disabled={pinging}>
+          {pinging ? "Pinging…" : "Ping Backend"}
+        </button>
+        {pingResult && (
+          <p style={{ color: pingResult.ok ? "green" : "red", marginTop: "0.5rem" }}>
+            {pingResult.ok ? "✓ " : "✗ "}{pingResult.message}
+          </p>
+        )}
+      </div>
 
       <Routes>
         {/* HOME */}
