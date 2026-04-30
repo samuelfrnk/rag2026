@@ -1,6 +1,6 @@
 // src/components/Header/Header.jsx
 import "./Header.css";
-import logo from "/logo_test1.png";
+import logo from "/logo_v2.png";
 
 export default function Header() {
   return (

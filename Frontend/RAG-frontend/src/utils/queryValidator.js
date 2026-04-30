@@ -24,11 +24,14 @@ export function validateQuery({ keywords, text, file, numPapers }) {
         if (hasTestErrorKeyword) {
         errors.push("Test error triggered (keyword: 'test error')");
         }
+
+
   // remove duplicates
   const uniqueKeywords = Array.from(
     new Map(cleanedKeywords.map(k => [k.term, k])).values()
   );
 
+  
   // --- TEXT ---
   const cleanedText = text.trim();
 

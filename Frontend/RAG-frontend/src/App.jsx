@@ -1,8 +1,10 @@
 import { useState } from "react";
 import Results from "./pages/Results";
+import IndvPaper from "./pages/indv_paper";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import { searchPapers, pingBackend } from "./services/api";
+import dummyPapers from "./data/dummyPapers";
 
 function App() {
   const navigate = useNavigate();
@@ -39,6 +41,8 @@ function App() {
     setLoading(true);
     setError(null);
 
+    navigate("/results");
+
     try {
       const query = keywords.map((k) => k.term).join(" ");
       const data = await searchPapers({
@@ -57,7 +61,14 @@ function App() {
         terms:    r.paper.terms,
         id:       r.paper.id,
       }));
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
+      // simulate top-k selection
+      const results = dummyPapers.slice(0, Math.min(numPapers, dummyPapers.length));
+      console.log("numPapers:", numPapers);
+
+
+      setPapers(results);
       setPapers(mapped);
       navigate("/results");
     } catch (err) {
@@ -66,6 +77,7 @@ function App() {
       setLoading(false);
     }
   };
+
 
   return (
     <div>
@@ -106,9 +118,18 @@ function App() {
         <Route
           path="/results"
           element={
-            <Results papers={papers} loading={loading} error={error} />
+            <Results 
+              papers={papers} 
+              loading={loading} 
+              error={error} 
+              total={numPapers}
+              keywords={keywords}
+              text={text}
+              file={file}
+              />
           }
         />
+        <Route path="/indv_paper/:id" element={<IndvPaper keywords={keywords} text={text} file={file} />} />
       </Routes>
     </div>
   );
