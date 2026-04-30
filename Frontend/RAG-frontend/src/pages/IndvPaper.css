@@ -5,6 +5,13 @@
   padding: 2.5rem 1.5rem;
 }
 
+p.chatbot-title{
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;;
+  margin-bottom: 1rem;
+}
+
 .indv-header {
   display: block;
   justify-content: center;
@@ -97,6 +104,6 @@ h1.indv-title {
 .chatbot-area {
   margin-top: 2rem;
   padding: 1.5rem;
-  background: #f9f9f9;
+  background: transparent;
   border-radius: 1.5rem;
 }

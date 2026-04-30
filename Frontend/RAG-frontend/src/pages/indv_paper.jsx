@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { resolveCategories } from "../utils/categoryMap";
 import "./IndvPaper.css";
+import PaperChatbot from "../components/Chatbot/Chatbot"; 
 
 export default function IndvPaper() {
   const [expandAbstract, setExpandAbstract] = useState(false);
@@ -112,8 +113,8 @@ export default function IndvPaper() {
         </div>
 
         <div className="chatbot-area">
-          <h2>Chatbot</h2>
-        <p>Ask anything about this paper!</p>
+          <h2>Paper Chatbot</h2>
+          <PaperChatbot paper={paper} />
         </div>
       </div>
     </div>
