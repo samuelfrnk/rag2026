@@ -10,11 +10,11 @@ num_results = 2000
 
 dt_string_full = datetime.datetime.now().strftime("%d_%m_%H_%M")
 dt_string_date = datetime.datetime.now().strftime("%d_%m")
+dt_string_date = "30_04" 
 
 parts_dir_path = os.path.join("Data", "datasets", "parts", dt_string_date)
 #f"\datasets\parts\{dt_string_date}" 
 csv_path = f"arxiv_data_{dt_string_date}_sz_{num_results}.csv"
-
 
 parts_abs_path = os.path.join(os.getcwd(), parts_dir_path)
 #os.path.abspath(parts_dir_path)
