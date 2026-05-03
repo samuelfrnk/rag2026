@@ -113,7 +113,7 @@ export default function IndvPaper() {
         </div>
 
         <div className="chatbot-area">
-          <h2>Paper Chatbot</h2>
+          <p className="chatbot-title">Paper Chatbot</p>
           <PaperChatbot paper={paper} />
         </div>
       </div>
