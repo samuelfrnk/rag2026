@@ -1,0 +1,21 @@
+p.intro {
+    font-size: 1rem;
+    color: #474747;
+
+}
+p.section-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    margin-top: 1rem;
+    font-weight: 300;
+}
+
+.qa-container {
+    width: 50%;
+    margin: 0 auto;
+    margin-top: 2rem;
+}
+
+.chatbot-container {
+    width: 100%; /* fills the already-centered qa-container */
+}
