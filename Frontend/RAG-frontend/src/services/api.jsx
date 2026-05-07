@@ -5,7 +5,6 @@ import config from "../config/config";
 export async function searchPapers(queryData) {
   const response = await fetch(`${config.API_BASE_URL}/search`, {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(queryData),
   });
