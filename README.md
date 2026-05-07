@@ -109,6 +109,18 @@ The frontend is built into a static bundle and served directly by FastAPI — bo
 
 ### 1. Build the frontend
 
+
+If node is not available run this: 
+
+
+```bash
+  conda deactivate                                                                                                                                                       
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash                                                                                        
+  source ~/.bashrc
+  nvm install 20                                                                                                                                                         
+  nvm use 20   
+```
+
 ```bash
 cd Frontend/RAG-frontend
 VITE_API_URL=/proxy/8000 npm run build -- --base=/proxy/8000/
