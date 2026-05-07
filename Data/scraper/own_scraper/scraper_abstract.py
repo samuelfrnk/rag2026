@@ -6,18 +6,72 @@ import pandas as pd
 import datetime
 import config_reader
 
+num_results = 2000
+
 dt_string_full = datetime.datetime.now().strftime("%d_%m_%H_%M")
 dt_string_date = datetime.datetime.now().strftime("%d_%m")
+dt_string_date = "30_04" 
 
-parts_dir_path = os.path.join("datasets", "parts", dt_string_date)
+parts_dir_path = os.path.join("Data", "datasets", "parts", dt_string_date)
 #f"\datasets\parts\{dt_string_date}" 
-csv_path = f"arxiv_data_{dt_string_date}.csv"
-
+csv_path = f"arxiv_data_{dt_string_date}_sz_{num_results}.csv"
 
 parts_abs_path = os.path.join(os.getcwd(), parts_dir_path)
 #os.path.abspath(parts_dir_path)
 
-num_results = 100
+query_categories = [
+"cs.AI",
+"cs.AR",
+"cs.CC",
+"cs.CE",
+"cs.CG",
+"cs.CL",
+"cs.CR",
+"cs.CV",
+"cs.CY",
+"cs.DB",
+"cs.DC",
+"cs.DL",
+"cs.DM",
+"cs.DS",
+"cs.ET",
+"cs.FL",
+"cs.GL",
+"cs.GR",
+"cs.GT",
+"cs.HC",
+"cs.IR",
+"cs.IT",
+"cs.LG",
+"cs.LO",
+"cs.MA",
+"cs.MM",
+"cs.MS",
+"cs.NA",
+"cs.NE",
+"cs.NI",
+"cs.OH",
+"cs.OS",
+"cs.PF",
+"cs.PL",
+"cs.RO",
+"cs.SC",
+"cs.SD",
+"cs.SE",
+"cs.SI",
+"cs.SY",
+"stat.CO",
+"stat.ME",
+"stat.ML",
+"stat.TH",
+"math.CO",
+"math.DS",
+"math.IT",
+"math.LO",
+"math.OC",
+"math.PR",
+"math.ST",
+]
 
 query_keywords = [
     "image segmentation",
@@ -99,15 +153,15 @@ def run_scraper():
     already_done = get_parts()
 
     print(f"parts dir: {parts_abs_path}")
-    print(f"{len(already_done)} parts found; {len(query_keywords)-len(already_done)} remaining")
+    print(f"{len(already_done)} parts found; {len(query_categories)-len(already_done)} remaining")
 
     client = arxiv.Client(num_retries=3, page_size=50)
 
-    def query_with_keywords(query):
+    def query_with_keywords(query, sort_type = arxiv.SortCriterion.LastUpdatedDate):
         search = arxiv.Search(
-            query=query,
+            query=f"cat:{query}",
             max_results=num_results,
-            sort_by=arxiv.SortCriterion.LastUpdatedDate,
+            sort_by=sort_type,
         )
         results = []
         for res in client.results(search):
@@ -119,15 +173,15 @@ def run_scraper():
 
     all_results = []
 
-    for i, keyword in enumerate(query_keywords):
+    for i, keyword in enumerate(query_categories):
         part_filename = keyword_to_filename(keyword)
         part_filepath = os.path.join(parts_abs_path, part_filename)
 
         if part_filename in already_done:
-            print(f"[{i+1}/{len(query_keywords)}] Skipping (already done): {keyword}")
+            print(f"[{i+1}/{len(query_categories)}] Skipping (already done): {keyword}")
             continue
 
-        print(f"[{i+1}/{len(query_keywords)}] Querying: {keyword}...")
+        print(f"[{i+1}/{len(query_categories)}] Querying: {keyword}...")
         try:
             results = query_with_keywords(keyword)
             df_part = pd.DataFrame(results)
@@ -141,6 +195,6 @@ def run_scraper():
 
 if __name__ == "__main__":
     print(f"RUNNING SCRAPER, id: {dt_string_date}")
-    print(f"{len(query_keywords)} keywords, {num_results} results")
-    print(f"\t{len(query_keywords) * num_results} data points expected")
+    print(f"{len(query_categories)} keywords, {num_results} results")
+    print(f"\t{len(query_categories) * num_results} data points expected")
     run_scraper()
