@@ -13,6 +13,7 @@ from typing import List, Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 # Make Backend/core importable
@@ -365,6 +366,14 @@ def clear_session(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found.")
     del SESSIONS[session_id]
     return {"status": "cleared", "session_id": session_id}
+
+
+# ---------------------------------------------------------------------------
+# Frontend static files (served from Backend/Gateway/dist after npm run build)
+# ---------------------------------------------------------------------------
+_dist = Path(__file__).parent / "dist"
+if _dist.exists():
+    app.mount("/", StaticFiles(directory=str(_dist), html=True), name="frontend")
 
 
 # ---------------------------------------------------------------------------
