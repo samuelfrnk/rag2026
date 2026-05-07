@@ -8,4 +8,8 @@ __MACOSX
 .venv/
 venv/
 __pycache__/
-*.pycarxiv_data_30_04_sz_2000.csv
+*.pyc
+arxiv_data_30_04_sz_2000.csv
+
+# Frontend build output
+dist/
