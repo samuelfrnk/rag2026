@@ -45,15 +45,17 @@ export default function ResultCard({ paper, index }) {
       {/* METADATA */}
       <p className="result-meta">
         {paper.authors} • {paper.year} • {" "}
-        <a
-          href={`https://doi.org/${paper.doi}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="doi-link"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {paper.doi}
-        </a>
+        {paper.abs_url && (
+          <a
+            href={paper.abs_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="doi-link"
+            onClick={(event) => event.stopPropagation()}
+          >
+            arXiv
+          </a>
+        )}
       </p>
 
       { /* category tags */ }

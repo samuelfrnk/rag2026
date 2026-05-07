@@ -6,6 +6,7 @@ Source: proof_of_concept.ipynb → load_index(), retrieve()
 import ast
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -14,9 +15,11 @@ import numpy as np
 
 from core import embedder
 
-BASE_DIR    = Path(__file__).parent.parent
-INDEX_PATH  = BASE_DIR / "arxiv.faiss"
-META_PATH   = BASE_DIR / "arxiv_meta.json"
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import CFG
+
+INDEX_PATH  = Path(CFG["index_path"])
+META_PATH   = Path(CFG["meta_path"])
 
 _index: faiss.Index | None = None
 _meta:  list | None        = None
@@ -52,7 +55,7 @@ def search(query: str, top_k: int, categories: Optional[list[str]] = None) -> li
         entry["score"] = float(score)
 
         if categories:
-            terms = _parse_terms(entry.get("terms", ""))
+            terms = _parse_terms(entry.get("categories", ""))
             if not any(cat in terms for cat in categories):
                 continue
 

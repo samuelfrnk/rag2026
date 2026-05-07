@@ -3,6 +3,7 @@ arXiv RAG Gateway — FastAPI backend
 Swagger UI: /docs  (works behind Nuvolos proxy via ROOT_PATH env var)
 """
 
+import ast
 import os
 import sys
 import uuid
@@ -87,11 +88,33 @@ class ChatResponse(BaseModel):
 # Helpers
 # ---------------------------------------------------------------------------
 def _to_paper(entry: dict) -> Paper:
+    published = entry.get("published", "")
+    year = None
+    if published:
+        try:
+            year = int(str(published)[:4])
+        except (ValueError, IndexError):
+            pass
+
+    authors_raw = entry.get("authors", "")
+    authors = []
+    if authors_raw:
+        try:
+            parsed = ast.literal_eval(str(authors_raw))
+            if isinstance(parsed, list):
+                authors = [str(a) for a in parsed]
+        except Exception:
+            authors = [str(authors_raw)]
+
     return Paper(
         id=str(entry.get("idx", "")),
         title=entry.get("title", ""),
-        abstract=entry.get("summary", ""),
-        terms=retriever._parse_terms(entry.get("terms", "")),
+        abstract=entry.get("abstract", ""),
+        authors=authors or None,
+        year=year,
+        terms=retriever._parse_terms(entry.get("categories", "")),
+        abs_url=entry.get("entry_id") or None,
+        pdf_url=entry.get("pdf_url") or None,
     )
 
 

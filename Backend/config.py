@@ -9,7 +9,7 @@ else:
     DEVICE = "cpu"
     
 CFG = {
-    "data_path" : "/files/rag2026/Data/cleaned_datasets/arxiv_data_22_04_cleaned.csv",
+    "data_path" : "/files/rag2026/arxiv_data_30_04_sz_2000.csv",
     "col_title" : "titles",
     "col_abstract" : "abstracts",
     "col_categories" : "categories",
