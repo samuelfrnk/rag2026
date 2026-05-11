@@ -15,8 +15,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 # Make Backend/core importable
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))          # Backend/ — for core
+sys.path.insert(0, str(Path(__file__).parent.parent / "routers"))  # Backend/routers/
 from core import embedder, retriever, generator, pdf
+from routers import paper_chat
 
 
 # ---------------------------------------------------------------------------
@@ -132,6 +134,7 @@ SESSIONS: dict = {}
 async def lifespan(app: FastAPI):
     embedder.load()
     retriever.load()
+    generator.load()
     yield
     print("Shutting down.")
 
@@ -156,6 +159,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(paper_chat.router)
 
 
 # ---------------------------------------------------------------------------
