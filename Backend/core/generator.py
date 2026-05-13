@@ -4,8 +4,9 @@ Source: proof_of_concept.ipynb → load_llm(), build_prompt(), generate_answer()
 """
 
 import torch
+from config import CFG
 
-MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
+MODEL_NAME = CFG["llm_model"]
 
 _tokenizer = None
 _model     = None

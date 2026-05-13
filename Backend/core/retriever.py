@@ -40,7 +40,11 @@ def search(query: str, top_k: int, categories: Optional[list[str]] = None) -> li
     if _index is None or _meta is None:
         raise RuntimeError("Retriever not loaded. Call retriever.load() first.")
 
-    q_emb   = embedder.embed(query)
+    # BGE models require "query: " prefix for search queries
+    prefixed_query = f"query: {query}"
+    q_emb = embedder.embed(prefixed_query)
+
+    #q_emb   = embedder.embed(query)
     fetch_k = min(top_k * 10 if categories else top_k, _index.ntotal)
     scores, ids = _index.search(q_emb, fetch_k)
 

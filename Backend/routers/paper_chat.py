@@ -104,7 +104,7 @@ async def paper_start(
     pdf_context = ""
     if pdf is not None:
         raw         = await pdf.read()
-        pdf_context = extract_pdf_text(raw, max_chars=4000)
+        pdf_context = pdf.extract_pdf_text(raw, max_chars=4000)
 
     opening = _generate_opening_message(paper)
 
@@ -134,7 +134,7 @@ async def paper_chat(
     pdf_context = session.get("pdf_context", "")
     if pdf is not None:
         raw         = await pdf.read()
-        pdf_context = extract_pdf_text(raw, max_chars=4000)
+        pdf_context = pdf.extract_pdf_text(raw, max_chars=4000)
         session["pdf_context"] = pdf_context
 
     system = _build_paper_system_prompt(paper, pdf_context=pdf_context)

@@ -5,8 +5,9 @@ Source: proof_of_concept.ipynb → load_embed_model(), embed_texts()
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
+from config import CFG
 
-MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+MODEL_NAME = CFG["embed_model"]
 
 _model: SentenceTransformer | None = None
 
@@ -16,7 +17,8 @@ def load() -> None:
     global _model
     print(f"Loading embedding model: {MODEL_NAME} ...")
     _model = SentenceTransformer(MODEL_NAME)
-    print(f"Embedding model ready (dim={_model.get_sentence_embedding_dimension()}).")
+    #print(f"Embedding model ready (dim={_model.get_sentence_embedding_dimension()}).")
+    print(f"Embedding model ready (dim={_model.get_embedding_dimension()}).") #BAAI
 
 
 def embed(text: str) -> np.ndarray:
