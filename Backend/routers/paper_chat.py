@@ -52,6 +52,7 @@ def _build_paper_system_prompt(paper: dict, pdf_context: str = "") -> str:
         "Answer ONLY based on the information about this paper provided below.",
         "If the user asks about something not covered by the abstract, say so honestly.",
         "Always be specific and cite the paper by its title.",
+        "If specific details like hyperparameters, dataset sizes, or exact numbers are not explicitly stated in the abstract, say so and do NOT speculate or invent them."
         "",
         "=== PAPER ===",
         f"Title    : {paper.get('title', 'N/A')}",
