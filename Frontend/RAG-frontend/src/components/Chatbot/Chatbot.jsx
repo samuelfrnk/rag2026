@@ -5,22 +5,18 @@ import "./Chatbot.css";
 // ─── PaperChatbot ─────────────────────────────────────────────────────────────
 //
 // Props:
-//   paper  — the full paper object from route state / localStorage
+//   paper  — (optional) a specific paper object to pin the chat to.
+//             When omitted, the backend performs a free-form RAG search
+//             across the entire paper database (global Q&A mode).
 //
 // Session lifecycle:
 //   • sessionId starts null → first POST creates a new server-side session
 //   • Backend returns session_id → stored and sent on every subsequent turn
 //   • On unmount the session is DELETE'd from the server to avoid memory leaks
-//
-// Paper-specificity:
-//   • paper.id is sent as paper_id so the backend fetches that exact document
-//     from the vector index instead of doing a free-form semantic search.
-//   • Note: paper.id in the current dummy data is the rank integer (1, 2, …).
-//     When the real backend is wired up, swap paper.id for whichever field
-//     holds the arXiv ID (e.g. "1706.03762" extracted from the DOI, or an
-//     entry_id field returned by the API).
 
 export default function PaperChatbot({ paper }) {
+  const isGlobalMode = !paper; // true when used on the home page
+
   // Each message: { role: "user" | "assistant" | "error", content: string }
   const [messages, setMessages]   = useState([]);
   const [input, setInput]         = useState("");
@@ -74,11 +70,15 @@ export default function PaperChatbot({ paper }) {
     setLoading(true);
 
     try {
-      const data = await chatWithPaper({
+      // Only include paperId when a specific paper is provided.
+      // In global mode, the backend will search the full vector index.
+      const payload = {
         message:   userText,
-        sessionId,          // null on first turn → server creates a fresh session
-        paperId:   paper.id // tells backend to retrieve this specific paper
-      });
+        sessionId,
+        ...(paper ? { paperId: paper.id } : {}),
+      };
+
+      const data = await chatWithPaper(payload);
 
       if (!sessionId) setSessionId(data.session_id);
 
@@ -122,8 +122,12 @@ export default function PaperChatbot({ paper }) {
       <div className="chat-messages">
         {messages.length === 0 && !loading && (
           <div className="chat-empty">
-            {/*<span className="chat-empty-icon">💬</span>*/}
-            { /* <p>Ask anything about this paper.</p> */}
+            <span className="chat-empty-icon">💬</span>
+            <p>
+              {isGlobalMode
+                ? "Ask anything — I'll search across all papers."
+                : "Ask anything about this paper."}
+            </p>
           </div>
         )}
 
@@ -156,7 +160,11 @@ export default function PaperChatbot({ paper }) {
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder="Ask a question… (Enter to send, Shift+Enter for new line)"
+          placeholder={
+            isGlobalMode
+              ? "Ask about any paper in the database… (Enter to send)"
+              : "Ask a question about this paper… (Enter to send)"
+          }
           rows={1}
           disabled={loading}
         />

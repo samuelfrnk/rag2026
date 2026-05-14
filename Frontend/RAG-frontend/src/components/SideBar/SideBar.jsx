@@ -1,4 +1,4 @@
-import "./Sidebar.css";
+import "./SideBar.css";
 import SidebarHeader from "./SidebarHeader";
 import InputsSummary from "./InputsSummary";
 

@@ -1,5 +1,5 @@
 import ProgressBar from "../components/ProgressBar/ProgressBar";
-import Sidebar from "../components/Sidebar/Sidebar";
+import Sidebar from "../components/SideBar/SideBar";
 import ResultCard from "../components/Results/ResultCard";
 import "./Results.css";
 import { useEffect, useState } from "react";

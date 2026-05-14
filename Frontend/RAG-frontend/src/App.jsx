@@ -3,8 +3,7 @@ import Results from "./pages/Results";
 import IndvPaper from "./pages/indv_paper";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
-import { searchPapers, pingBackend } from "./services/api";
-import dummyPapers from "./data/dummyPapers";
+import { searchPapers } from "./services/api";
 
 function App() {
   const navigate = useNavigate();
@@ -21,26 +20,9 @@ function App() {
 
   const canSubmit = keywords.length > 0;
 
-  const [pingResult, setPingResult] = useState(null);
-  const [pinging, setPinging] = useState(false);
-
-  const handlePing = async () => {
-    setPinging(true);
-    setPingResult(null);
-    try {
-      const data = await pingBackend();
-      setPingResult({ ok: true, message: JSON.stringify(data) });
-    } catch (err) {
-      setPingResult({ ok: false, message: err.message });
-    } finally {
-      setPinging(false);
-    }
-  };
-
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
-
     navigate("/results");
 
     try {
@@ -51,26 +33,19 @@ function App() {
         sort_by: "relevance",
       });
 
-      // Map API response shape → flat paper objects for Results page
       const mapped = (data.results || []).map((r) => ({
-        title:    r.paper.title,
-        authors:  r.paper.authors ? r.paper.authors.join(", ") : null,
-        year:     r.paper.year,
-        abstract: r.paper.abstract,
-        score:    r.score,
-        terms:    r.paper.terms,
-        id:       r.paper.id,
+        title:      r.paper.title,
+        authors:    r.paper.authors ? r.paper.authors.join(", ") : null,
+        year:       r.paper.year,
+        abstract:   r.paper.abstract,
+        score:      r.score,
+        categories: r.paper.terms,
+        abs_url:    r.paper.abs_url,
+        pdf_url:    r.paper.pdf_url,
+        id:         r.paper.id,
       }));
-      await new Promise((resolve) => setTimeout(resolve, 4000));
 
-      // simulate top-k selection
-      const results = dummyPapers.slice(0, Math.min(numPapers, dummyPapers.length));
-      console.log("numPapers:", numPapers);
-
-
-      setPapers(results);
       setPapers(mapped);
-      navigate("/results");
     } catch (err) {
       setError("Failed to fetch papers. Is the backend running?");
     } finally {
@@ -78,20 +53,8 @@ function App() {
     }
   };
 
-
   return (
     <div>
-      <div style={{ textAlign: "center", margin: "1rem 0" }}>
-        <button onClick={handlePing} disabled={pinging}>
-          {pinging ? "Pinging…" : "Ping Backend"}
-        </button>
-        {pingResult && (
-          <p style={{ color: pingResult.ok ? "green" : "red", marginTop: "0.5rem" }}>
-            {pingResult.ok ? "✓ " : "✗ "}{pingResult.message}
-          </p>
-        )}
-      </div>
-
       <Routes>
         {/* HOME */}
         <Route

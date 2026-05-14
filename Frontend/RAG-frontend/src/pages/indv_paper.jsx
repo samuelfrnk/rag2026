@@ -60,13 +60,24 @@ export default function IndvPaper() {
 
         <p className="indv-meta">
           {paper.authors} • {paper.year} • {" "}
-          <a
-            href={`https://doi.org/${paper.doi}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {paper.doi}
-          </a>
+          {paper.abs_url && (
+            <a
+              href={paper.abs_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              arXiv
+            </a>
+          )}
+          {paper.pdf_url && (
+            <> • <a
+              href={paper.pdf_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              PDF
+            </a></>
+          )}
         </p>
 
         <p className="indv-categories">

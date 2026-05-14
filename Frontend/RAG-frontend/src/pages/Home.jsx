@@ -2,6 +2,8 @@ import { useState } from "react";
 import Header from "../components/Header/Header";
 import SearchForm from "../components/SearchForm/SearchForm";
 import ModeToggle from "../components/ModeToggle/ModeToggle";
+import PaperChatbot from "../components/Chatbot/Chatbot"; // ← adjust path to match your project structure
+import "./home.css"
 
 export default function Home(props) {
   const [mode, setMode] = useState("search");
@@ -30,9 +32,10 @@ export default function Home(props) {
       )}
 
       {mode === "qa" && (
-        <div className="qa-placeholder">
-          <h3>Ask about Papers</h3>
-          <p>This feature is coming next.</p>
+        <div className="qa-container">
+          {/* <p className="section-title">Ask our chatbot which will query our entire paper database!</p> */}
+          {/* No `paper` prop → global RAG mode, searches all papers */}
+          <PaperChatbot />
         </div>
       )}
     </>
