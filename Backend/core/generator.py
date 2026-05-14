@@ -4,8 +4,9 @@ Source: proof_of_concept.ipynb → load_llm(), build_prompt(), generate_answer()
 """
 
 import torch
+from config import CFG
 
-MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
+MODEL_NAME = CFG["llm_model"]
 
 _tokenizer = None
 _model     = None
@@ -87,6 +88,7 @@ def generate(prompt: str, max_new_tokens: int = 512, temperature: float = 0.7) -
     with torch.no_grad():
         out = _model.generate(
             input_ids,
+            attention_mask = torch.ones_like(input_ids),
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             do_sample=temperature > 0,
@@ -119,6 +121,7 @@ def generate_chat(messages: list, max_new_tokens: int = 512, temperature: float 
     with torch.no_grad():
         out = _model.generate(
             input_ids,
+            attention_mask = torch.ones_like(input_ids),
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             do_sample=temperature > 0,

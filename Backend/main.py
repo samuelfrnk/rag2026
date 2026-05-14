@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from models import lifespan
-from routers import chat, search
+from routers import chat, search, paper_chat
 from config import DEVICE
 
 
@@ -21,6 +21,7 @@ app.add_middleware(
 
 app.include_router(search.router)
 app.include_router(chat.router)
+app.include_router(paper_chat.router)
 
 @app.get("/health", tags=["Meta"])
 def health():

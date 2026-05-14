@@ -149,16 +149,26 @@ def main():
 
     # 2. Load embedding model
     print(f"\nLoading embedding model …")
-    hf_model_id = CFG["embed_model"].replace("sentence-transformers/", "")
-    tokenizer = AutoTokenizer.from_pretrained(f"sentence-transformers/{hf_model_id}", use_fast=False)
-    embed_model = AutoModel.from_pretrained(f"sentence-transformers/{hf_model_id}")
+    #hf_model_id = CFG["embed_model"].replace("sentence-transformers/", "")
+    #tokenizer = AutoTokenizer.from_pretrained(f"sentence-transformers/{hf_model_id}", use_fast=False)
+    #embed_model = AutoModel.from_pretrained(f"sentence-transformers/{hf_model_id}")
+
+    tokenizer   = AutoTokenizer.from_pretrained(CFG["embed_model"], use_fast=False)
+    embed_model = AutoModel.from_pretrained(CFG["embed_model"])
     embed_model.eval()
     print(f"Embedding dim: {embed_model.config.hidden_size}\n")
 
     # 3. Build combined text field for embedding (title + abstract)
+    #texts = (
+    #    df[CFG["col_title"]].str.strip()
+    #    + " [SEP] "
+    #    + df[CFG["col_abstract"]].str.strip()
+    #).tolist()
+
     texts = (
-        df[CFG["col_title"]].str.strip()
-        + " [SEP] "
+    "passage: "
+        + df[CFG["col_title"]].str.strip()
+        + " "
         + df[CFG["col_abstract"]].str.strip()
     ).tolist()
 
