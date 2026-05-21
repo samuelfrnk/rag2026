@@ -5,7 +5,7 @@ import "./Results.css";
 import { useEffect, useState } from "react";
 import Filters from "../components/Filters/Filters";
 
-export default function Results({ papers, loading, error, total, keywords, text, file }) {
+export default function Results({ papers, loading, error, total, progress = 0, keywords, text, file }) {
   if (error) return <p style={{ color: "red" }}>{error}</p>;
   
   const [sortBy, setSortBy] = useState({
@@ -58,7 +58,7 @@ export default function Results({ papers, loading, error, total, keywords, text,
 
         <div className="results-main">
           <div className="results-loading">
-            <ProgressBar total={total} />
+            <ProgressBar total={total} progress={progress} />
           </div>
         </div>
       </div>

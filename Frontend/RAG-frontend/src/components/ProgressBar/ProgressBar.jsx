@@ -1,25 +1,8 @@
-import { useEffect, useState } from "react";
 import "./ProgressBar.css";
 
-export default function ProgressBar({ total = 10 }) {
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    let current = 0;
-
-    const interval = setInterval(() => {
-      current += 1;
-      setProgress(current);
-
-      if (current >= total) {
-        clearInterval(interval);
-      }
-    }, 10000 / total); // 10 seconds total
-
-    return () => clearInterval(interval);
-  }, [total]);
-
-  const percent = (progress / total) * 100;
+export default function ProgressBar({ total = 10, progress = 0 }) {
+  const safeProgress = Math.min(Math.max(progress, 0), total);
+  const percent = total > 0 ? (safeProgress / total) * 100 : 0;
 
   return (
     <div className="progress-wrapper">
