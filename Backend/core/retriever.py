@@ -35,10 +35,10 @@ def load() -> None:
     print(f"Index loaded: {_index.ntotal} vectors | {len(_meta)} papers in metadata.")
 
 
-def search(query: str, top_k: int, categories: Optional[list[str]] = None) -> list[dict]:
+def search_iter(query: str, top_k: int, categories: Optional[list[str]] = None):
     """
     Embed query, search FAISS, apply optional category filter.
-    Returns a list of metadata dicts each with an added 'score' key.
+    Yield metadata dicts each with an added 'score' key.
     """
     if _index is None or _meta is None:
         raise RuntimeError("Retriever not loaded. Call retriever.load() first.")
@@ -47,11 +47,10 @@ def search(query: str, top_k: int, categories: Optional[list[str]] = None) -> li
     prefixed_query = f"query: {query}"
     q_emb = embedder.embed(prefixed_query)
 
-    #q_emb   = embedder.embed(query)
     fetch_k = min(top_k * 10 if categories else top_k, _index.ntotal)
     scores, ids = _index.search(q_emb, fetch_k)
 
-    results = []
+    count = 0
     for score, idx_val in zip(scores[0], ids[0]):
         if idx_val == -1:
             continue
@@ -63,11 +62,14 @@ def search(query: str, top_k: int, categories: Optional[list[str]] = None) -> li
             if not any(cat in terms for cat in categories):
                 continue
 
-        results.append(entry)
-        if len(results) >= top_k:
+        count += 1
+        yield entry
+        if count >= top_k:
             break
 
-    return results
+
+def search(query: str, top_k: int, categories: Optional[list[str]] = None) -> list[dict]:
+    return list(search_iter(query, top_k, categories))
 
 
 def get_by_index(idx: int) -> dict:

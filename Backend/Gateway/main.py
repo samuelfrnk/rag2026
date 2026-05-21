@@ -11,8 +11,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List, Optional
 
+import json
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -208,6 +210,45 @@ def search_papers(req: SearchRequest):
         for i, r in enumerate(results_raw)
     ]
     return SearchResponse(query=req.query, results=results, total=len(results))
+
+
+@app.post("/search/stream")
+def search_papers_stream(req: SearchRequest):
+    results_raw = list(retriever.search_iter(req.query, req.top_k))
+    if not results_raw:
+        raise HTTPException(status_code=404, detail="No relevant papers found.")
+
+    if req.sort_by == "year":
+        results_raw.sort(key=lambda r: r.get("year", 0), reverse=True)
+
+    def event_generator():
+        for i, r in enumerate(results_raw, start=1):
+            progress_event = {
+                "type": "progress",
+                "progress": i,
+                "total": len(results_raw),
+            }
+            yield f"data: {json.dumps(progress_event)}\n\n"
+
+        payload_results = [
+            {
+                "paper": _to_paper(r).dict(),
+                "score": r["score"],
+                "rank": i + 1,
+            }
+            for i, r in enumerate(results_raw)
+        ]
+        results_event = {
+            "type": "results",
+            "payload": {
+                "query": req.query,
+                "results": payload_results,
+                "total": len(payload_results),
+            },
+        }
+        yield f"data: {json.dumps(results_event)}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @app.post("/search/upload", response_model=SearchResponse)
