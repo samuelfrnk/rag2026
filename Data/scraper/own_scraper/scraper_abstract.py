@@ -5,6 +5,9 @@ import arxiv
 import pandas as pd
 import datetime
 import config_reader
+import requests
+import json
+import time
 
 num_results = 2000
 
@@ -109,6 +112,70 @@ query_keywords = [
     "photogrammetry",
 ]
 
+top_cited_count = 50000
+
+top_cited_ids_file = "top_cited_ids.txt"
+
+
+def fetch_top_cited_by_category(output_dir="top_cited"):
+    os.makedirs(output_dir, exist_ok=True)
+
+    base_url = "https://api.openalex.org/works"
+    per_page = 200  # OpenAlex max per page
+
+    cursor = "*"
+
+    total_results = 0
+    print(f"Fetching top {top_cited_count} cited papers...")
+    arxiv_ids = []
+
+    with open(top_cited_ids_file, "a") as f:
+
+        while cursor:
+
+            params = {
+                #"filter": f"locations.source.id:S2764455111,concepts.display_name:{category}",
+                "filter": "topics.field.id:17,locations.source.id:s4306400194",
+                #"filter": "concepts.id:C41008148",
+                "sort": "cited_by_count:desc",
+                "per_page": per_page,
+                "cursor": cursor,
+                "select": "ids,cited_by_count",
+            }
+
+            try:
+                resp = requests.get(base_url, params=params)
+                resp.raise_for_status()
+                data = resp.json()
+                results = data.get("results", [])
+
+                #print(results)
+
+                for work in results:
+
+                    doi = work.get("ids", {}).get("doi")
+
+                    if doi:
+                        doi = doi.replace("https://doi.org/", "")
+
+                        arxiv_ids.append(doi)
+                        f.write(f"{doi}\n")
+
+                total_results += len(results)
+
+                print(f"Fetched {len(results)} results \n\t({total_results} total)")
+
+                cursor = data.get("meta", {}).get("next_cursor")
+
+                time.sleep(0.1)
+
+            except Exception as e:
+                print(f"  -> Failed : {e}")
+                break
+
+    print(f"Done. Total IDs collected: {len(arxiv_ids)}")
+
+
 
 def keyword_to_filename(keyword):
     """Convert a keyword string to a safe filename."""
@@ -144,6 +211,8 @@ def merge_parts():
     merged = pd.concat(dfs, ignore_index=True).drop_duplicates(subset="titles")
     merged.to_csv(csv_path, index=False)
     print(f"\n{len(merged)} unique papers saved to {csv_path}")
+
+
 
 
 def run_scraper():
@@ -194,6 +263,9 @@ def run_scraper():
 
 
 if __name__ == "__main__":
+
+    fetch_top_cited_by_category()
+
     print(f"RUNNING SCRAPER, id: {dt_string_date}")
     print(f"{len(query_categories)} keywords, {num_results} results")
     print(f"\t{len(query_categories) * num_results} data points expected")

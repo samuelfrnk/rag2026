@@ -10,6 +10,7 @@ else:
     
 CFG = {
     "data_path" : "/files/rag2026/arxiv_data_30_04_sz_2000.csv",
+    #"data_path" : "/files/rag2026/arxiv_data_merged_full_cleaned.csv",
     "col_title" : "titles",
     "col_abstract" : "abstracts",
     "col_categories" : "categories",

@@ -2,12 +2,17 @@ import os
 import pandas as pd
 import hashlib
 
+
 FILENAME = "arxiv_scrape_1"
-FILENAME = "arxiv_data_22_04"
+FILENAME = "arxiv_data_30_04_sz_2000"
 
 CSV_PATH = f"datasets/{FILENAME}.csv"
 OUTPUT_PATH = f"cleaned_datasets/{FILENAME}_cleaned.csv"
-MIN_ABSTRACT_CHARS = 80
+
+CSV_PATH = f"arxiv_data_merged_full.csv"
+OUTPUT_PATH = f"arxiv_data_merged_full_cleaned.csv"
+
+MIN_ABSTRACT_CHARS = 40
 
 def load(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
@@ -66,12 +71,14 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def save(df: pd.DataFrame, path: str):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+
+    #os.makedirs(os.path.dirname(path), exist_ok=True)
     df.to_csv(path, index=False)
     print(f"\nSaved cleaned data to {path}")
 
-    print(df.describe())
-    print(df.head(3).to_string())
+    #print(df.describe())
+    #print(df.head(3).to_string())
 
 
 if __name__ == "__main__":
