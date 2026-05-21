@@ -3,7 +3,7 @@ import Results from "./pages/Results";
 import IndvPaper from "./pages/indv_paper";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
-import { searchPapers } from "./services/api";
+import { searchPapersWithProgress } from "./services/api";
 
 function App() {
   const navigate = useNavigate();
@@ -11,6 +11,7 @@ function App() {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchProgress, setSearchProgress] = useState(0);
 
   const [keywords, setKeywords] = useState([]);
   const [keywordInput, setKeywordInput] = useState("");
@@ -23,15 +24,19 @@ function App() {
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
+    setSearchProgress(0);
     navigate("/results");
 
     try {
       const query = keywords.map((k) => k.term).join(" ");
-      const data = await searchPapers({
-        query: query + (text ? " " + text : ""),
-        top_k: numPapers,
-        sort_by: "relevance",
-      });
+      const data = await searchPapersWithProgress(
+        {
+          query: query + (text ? " " + text : ""),
+          top_k: numPapers,
+          sort_by: "relevance",
+        },
+        (progress) => setSearchProgress(progress)
+      );
 
       const mapped = (data.results || []).map((r) => ({
         title:      r.paper.title,
@@ -50,6 +55,7 @@ function App() {
       setError("Failed to fetch papers. Is the backend running?");
     } finally {
       setLoading(false);
+      setSearchProgress(0);
     }
   };
 
@@ -86,6 +92,7 @@ function App() {
               loading={loading} 
               error={error} 
               total={numPapers}
+              progress={searchProgress}
               keywords={keywords}
               text={text}
               file={file}

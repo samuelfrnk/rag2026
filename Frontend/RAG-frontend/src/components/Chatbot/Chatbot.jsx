@@ -1,5 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { chatWithPaper, clearChatSession } from "../../services/api"; // ← adjust path if needed
+import {
+  chatWithPaper,
+  clearChatSession,
+  startPaperChat,
+  chatWithPaperSession,
+  clearPaperChatSession,
+} from "../../services/api"; // ← adjust path if needed
 import "./Chatbot.css";
 
 // ─── PaperChatbot ─────────────────────────────────────────────────────────────
@@ -27,6 +33,15 @@ export default function PaperChatbot({ paper }) {
   const textareaRef  = useRef(null);
   const sessionIdRef = useRef(null); // ref so the cleanup effect always reads the latest value
 
+  const initPaperSession = async () => {
+    if (!paper) return null;
+
+    const data = await startPaperChat({ entryId: paper.id });
+    setSessionId(data.session_id);
+    setMessages([{ role: "assistant", content: data.opening_message }]);
+    return data.session_id;
+  };
+
   // ── Auto-scroll whenever messages or loading state change ─────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,14 +52,43 @@ export default function PaperChatbot({ paper }) {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
 
+  // ── Start a paper-specific session when the page loads ─────────────────────
+  useEffect(() => {
+    if (!paper) return;
+
+    let mounted = true;
+    const startup = async () => {
+      setLoading(true);
+      try {
+        const data = await startPaperChat({ entryId: paper.id });
+        if (!mounted) return;
+        setSessionId(data.session_id);
+        setMessages([{ role: "assistant", content: data.opening_message }]);
+      } catch {
+        if (!mounted) return;
+        setMessages([
+          { role: "error", content: "Failed to start the paper chat. Please reload the page." },
+        ]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    startup();
+    return () => {
+      mounted = false;
+    };
+  }, [paper]);
+
   // ── Delete session from server when user navigates away ───────────────────
   useEffect(() => {
     return () => {
       if (sessionIdRef.current) {
-        clearChatSession(sessionIdRef.current).catch(() => {});
+        const clear = isGlobalMode ? clearChatSession : clearPaperChatSession;
+        clear(sessionIdRef.current).catch(() => {});
       }
     };
-  }, []);
+  }, [isGlobalMode]);
 
   // ── Auto-resize textarea up to 120 px ────────────────────────────────────
   const handleInputChange = (e) => {
@@ -70,23 +114,27 @@ export default function PaperChatbot({ paper }) {
     setLoading(true);
 
     try {
-      // Only include paperId when a specific paper is provided.
-      // In global mode, the backend will search the full vector index.
-      const payload = {
-        message:   userText,
-        sessionId,
-        ...(paper ? { paperId: paper.id } : {}),
-      };
+      let data;
 
-      const data = await chatWithPaper(payload);
+      if (isGlobalMode) {
+        data = await chatWithPaper({ message: userText, sessionId });
+      } else {
+        const sid = sessionId || (await initPaperSession());
+        if (!sid) {
+          throw new Error("Unable to initialize paper session");
+        }
+        data = await chatWithPaperSession({ sessionId: sid, message: userText });
+      }
 
-      if (!sessionId) setSessionId(data.session_id);
+      if (!sessionId && data.session_id) {
+        setSessionId(data.session_id);
+      }
 
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: data.answer },
       ]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: "error", content: "Something went wrong — please try again." },
@@ -107,7 +155,8 @@ export default function PaperChatbot({ paper }) {
   // ── Wipe local state and delete server session ────────────────────────────
   const resetChat = () => {
     if (sessionId) {
-      clearChatSession(sessionId).catch(() => {});
+      const clear = isGlobalMode ? clearChatSession : clearPaperChatSession;
+      clear(sessionId).catch(() => {});
       setSessionId(null);
     }
     setMessages([]);
