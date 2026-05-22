@@ -45,7 +45,7 @@ def load() -> bool:
             # CPU fallback — no quantization, float32
             _model = AutoModelForCausalLM.from_pretrained(
                 MODEL_NAME,
-                torch_dtype=torch.float32,
+                dtype=torch.float32,
             )
 
         _model.eval()
@@ -83,7 +83,7 @@ def build_prompt(question: str, retrieved: list[dict]) -> str:
     )
 
 
-def generate(prompt: str, max_new_tokens: int = 512, temperature: float = 0.7) -> str:
+def generate(prompt: str, max_new_tokens: int = CFG["llm_max_tokens"], temperature: float = CFG["llm_temperature"]) -> str:
     """Run the loaded LLM on the prompt and return the generated answer string."""
     if _model is None or _tokenizer is None:
         raise RuntimeError("Generator not loaded. Call generator.load() first.")
@@ -111,7 +111,7 @@ def generate(prompt: str, max_new_tokens: int = 512, temperature: float = 0.7) -
     return _tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
 
 
-def generate_chat(messages: list, max_new_tokens: int = 512, temperature: float = 0.7) -> str:
+def generate_chat(messages: list, max_new_tokens: int = CFG["llm_max_tokens"], temperature: float = CFG["llm_temperature"]) -> str:
     """Run the LLM on a full messages list (system/user/assistant turns) for multi-turn chat."""
     if _model is None or _tokenizer is None:
         raise RuntimeError("Generator not loaded. Call generator.load() first.")
