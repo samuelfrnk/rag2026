@@ -1,23 +1,16 @@
 import { useState, useRef, useEffect } from "react";
-import { chatWithPaper, clearChatSession } from "../../services/api"; // ← adjust path if needed
+import {
+  chatWithPaper,
+  clearChatSession,
+  paperStart,
+  paperChat,
+  clearPaperSession,
+} from "../../services/api";
 import "./Chatbot.css";
 
-// ─── PaperChatbot ─────────────────────────────────────────────────────────────
-//
-// Props:
-//   paper  — (optional) a specific paper object to pin the chat to.
-//             When omitted, the backend performs a free-form RAG search
-//             across the entire paper database (global Q&A mode).
-//
-// Session lifecycle:
-//   • sessionId starts null → first POST creates a new server-side session
-//   • Backend returns session_id → stored and sent on every subsequent turn
-//   • On unmount the session is DELETE'd from the server to avoid memory leaks
-
 export default function PaperChatbot({ paper }) {
-  const isGlobalMode = !paper; // true when used on the home page
+  const isGlobalMode = !paper;
 
-  // Each message: { role: "user" | "assistant" | "error", content: string }
   const [messages, setMessages]   = useState([]);
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
@@ -25,28 +18,52 @@ export default function PaperChatbot({ paper }) {
 
   const bottomRef    = useRef(null);
   const textareaRef  = useRef(null);
-  const sessionIdRef = useRef(null); // ref so the cleanup effect always reads the latest value
+  const sessionIdRef = useRef(null);
 
-  // ── Auto-scroll whenever messages or loading state change ─────────────────
+  // ── Auto-scroll ───────────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // ── Keep ref in sync with state (closures in cleanup won't stale-capture) ─
+  // ── Keep ref in sync with state ───────────────────────────────────────────
   useEffect(() => {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
 
-  // ── Delete session from server when user navigates away ───────────────────
+  // ── Paper mode: start session + get opening message on mount ─────────────
+  useEffect(() => {
+    if (isGlobalMode) return;
+    initPaperSession();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Cleanup on unmount ────────────────────────────────────────────────────
   useEffect(() => {
     return () => {
-      if (sessionIdRef.current) {
+      if (!sessionIdRef.current) return;
+      if (isGlobalMode) {
         clearChatSession(sessionIdRef.current).catch(() => {});
+      } else {
+        clearPaperSession(sessionIdRef.current).catch(() => {});
       }
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Auto-resize textarea up to 120 px ────────────────────────────────────
+  // ── Start (or restart) a paper session ───────────────────────────────────
+  const initPaperSession = async () => {
+    setLoading(true);
+    setMessages([]);
+    try {
+      const data = await paperStart(paper.id);
+      setSessionId(data.session_id);
+      setMessages([{ role: "assistant", content: data.opening_message }]);
+    } catch (err) {
+      setMessages([{ role: "error", content: "Could not load paper session — please try again." }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Auto-resize textarea ──────────────────────────────────────────────────
   const handleInputChange = (e) => {
     setInput(e.target.value);
     const ta = textareaRef.current;
@@ -61,31 +78,24 @@ export default function PaperChatbot({ paper }) {
     const userText = input.trim();
     if (!userText || loading) return;
 
-    // Reset input immediately for responsiveness
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-
-    // Optimistically show the user's bubble
     setMessages((prev) => [...prev, { role: "user", content: userText }]);
     setLoading(true);
 
     try {
-      // Only include paperId when a specific paper is provided.
-      // In global mode, the backend will search the full vector index.
-      const payload = {
-        message:   userText,
-        sessionId,
-        ...(paper ? { paperId: paper.id } : {}),
-      };
+      let answer;
 
-      const data = await chatWithPaper(payload);
+      if (isGlobalMode) {
+        const data = await chatWithPaper({ message: userText, sessionId });
+        if (!sessionId) setSessionId(data.session_id);
+        answer = data.answer;
+      } else {
+        const data = await paperChat({ sessionId, message: userText });
+        answer = data.answer;
+      }
 
-      if (!sessionId) setSessionId(data.session_id);
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.answer },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: answer }]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -104,21 +114,25 @@ export default function PaperChatbot({ paper }) {
     }
   };
 
-  // ── Wipe local state and delete server session ────────────────────────────
+  // ── Reset ─────────────────────────────────────────────────────────────────
   const resetChat = () => {
     if (sessionId) {
-      clearChatSession(sessionId).catch(() => {});
+      if (isGlobalMode) {
+        clearChatSession(sessionId).catch(() => {});
+      } else {
+        clearPaperSession(sessionId).catch(() => {});
+      }
       setSessionId(null);
     }
     setMessages([]);
     setInput("");
+    if (!isGlobalMode) initPaperSession();
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="chatbot-container">
 
-      {/* Message list */}
       <div className="chat-messages">
         {messages.length === 0 && !loading && (
           <div className="chat-empty">
@@ -152,7 +166,6 @@ export default function PaperChatbot({ paper }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input row */}
       <div className="chat-input-row">
         <textarea
           ref={textareaRef}
@@ -178,7 +191,6 @@ export default function PaperChatbot({ paper }) {
         </button>
       </div>
 
-      {/* Clear button — only shown once conversation has started */}
       {messages.length > 0 && (
         <button className="chat-reset-btn" onClick={resetChat}>
           Clear conversation

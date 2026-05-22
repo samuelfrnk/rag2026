@@ -13,21 +13,8 @@ export async function searchPapers(queryData) {
   return response.json();
 }
 
-// ─── Chat ─────────────────────────────────────────────────────────────────────
+// ─── Global chat ──────────────────────────────────────────────────────────────
 
-/**
- * Send a message to the /chat endpoint.
- *
- * The backend accepts multipart/form-data — NOT JSON — because the route
- * uses FastAPI Form() fields (and optionally a file upload).
- * We therefore build a FormData object rather than JSON.stringify().
- *
- * @param {Object} opts
- * @param {string}      opts.message    - The user's question (may include injected paper context)
- * @param {string|null} opts.sessionId  - null on the first turn; use the returned value afterwards
- * @param {number}      opts.topK       - How many papers to retrieve as context (default 5)
- * @returns {Promise<{ session_id: string, answer: string, papers: Paper[] }>}
- */
 export async function chatWithPaper({ message, sessionId = null, topK = 5 }) {
   const formData = new FormData();
   formData.append("message", message);
@@ -36,8 +23,6 @@ export async function chatWithPaper({ message, sessionId = null, topK = 5 }) {
 
   const response = await fetch(`${config.API_BASE_URL}/chat`, {
     method: "POST",
-    // ⚠️  Do NOT set Content-Type manually — the browser sets it automatically
-    //     with the correct multipart boundary when you pass a FormData body.
     body: formData,
   });
 
@@ -49,16 +34,55 @@ export async function chatWithPaper({ message, sessionId = null, topK = 5 }) {
   return response.json();
 }
 
-/**
- * Delete a session from the server (called on component unmount).
- * Fire-and-forget is fine — we don't block on it.
- *
- * @param {string} sessionId
- */
 export async function clearChatSession(sessionId) {
   const response = await fetch(`${config.API_BASE_URL}/chat/${sessionId}`, {
     method: "DELETE",
   });
   if (!response.ok) throw new Error("Failed to clear session");
+  return response.json();
+}
+
+// ─── Individual paper chat ────────────────────────────────────────────────────
+
+export async function paperStart(entryId) {
+  const formData = new FormData();
+  formData.append("entry_id", String(entryId));
+
+  const response = await fetch(`${config.API_BASE_URL}/paper/start`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to start paper session");
+  }
+
+  return response.json();
+}
+
+export async function paperChat({ sessionId, message }) {
+  const formData = new FormData();
+  formData.append("session_id", sessionId);
+  formData.append("message", message);
+
+  const response = await fetch(`${config.API_BASE_URL}/paper/chat`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Paper chat request failed");
+  }
+
+  return response.json();
+}
+
+export async function clearPaperSession(sessionId) {
+  const response = await fetch(`${config.API_BASE_URL}/paper/chat/${sessionId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Failed to clear paper session");
   return response.json();
 }
