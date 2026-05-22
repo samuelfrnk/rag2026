@@ -124,7 +124,7 @@ If node is not available run this:
 ```bash
 cd Frontend/RAG-frontend
 VITE_API_URL=/proxy/8000 npm run build -- --base=/proxy/8000/
-cp -r dist /files/rag2026/Backend/Gateway/dist
+rm -rf /files/rag2026/Backend/Gateway/dist && cp -r dist /files/rag2026/Backend/Gateway/dist
 ```
 
 ### 2. Start the backend
