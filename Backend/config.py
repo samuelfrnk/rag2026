@@ -29,7 +29,7 @@ CFG = {
     "meta_path" : "/files/tmp/arxiv_meta.json",
     
     "llm_model" : "microsoft/Phi-3-mini-128k-instruct",
-    "llm_max_tokens" : 128,
+    "llm_max_tokens" : 512,
     "llm_temperature" : 0.7,
     "llm_load_in_4bit" : True,
     
