@@ -15,27 +15,39 @@ _model     = None
 def load() -> bool:
     """
     Lazily load the LLM and tokenizer into memory.
+    - CUDA available: 4-bit quantized on GPU (fits in 4 GB VRAM)
+    - CPU only:       float32 on CPU (slow but functional for testing)
     Returns True on success, False if the model is unavailable.
     """
     global _tokenizer, _model
     if _model is not None:
         return True
     try:
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-        print(f"Loading LLM: {MODEL_NAME} ...")
-        device = (
-            "mps"  if torch.backends.mps.is_available()  else
-            "cuda" if torch.cuda.is_available()           else
-            "cpu"
-        )
+        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+        use_gpu = torch.cuda.is_available()
+        print(f"Loading LLM: {MODEL_NAME} ({'4-bit GPU' if use_gpu else 'float32 CPU'}) ...")
+
         _tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-        _model = AutoModelForCausalLM.from_pretrained(
-            MODEL_NAME,
-            dtype=torch.float16 if device != "cpu" else torch.float32,
-            device_map="auto"   if device != "cpu" else None,
-        )
-        if device == "cpu":
-            _model = _model.to(device)
+
+        if use_gpu and CFG.get("llm_load_in_4bit", False):
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type="nf4",
+            )
+            _model = AutoModelForCausalLM.from_pretrained(
+                MODEL_NAME,
+                quantization_config=bnb_config,
+                device_map="auto",
+            )
+        else:
+            # CPU fallback — no quantization, float32
+            _model = AutoModelForCausalLM.from_pretrained(
+                MODEL_NAME,
+                torch_dtype=torch.float32,
+            )
+
         _model.eval()
         print("LLM loaded.")
         return True

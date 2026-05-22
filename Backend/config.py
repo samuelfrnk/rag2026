@@ -31,7 +31,7 @@ CFG = {
     "llm_model" : "microsoft/Phi-3-mini-128k-instruct",
     "llm_max_tokens" : 512,
     "llm_temperature" : 0.7,
-    "llm_load_in_4bit" : False,
+    "llm_load_in_4bit" : True,
     
     "top_k" : 8,
 }
