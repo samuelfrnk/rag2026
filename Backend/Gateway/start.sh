@@ -27,6 +27,7 @@ if [ -f ".venv/bin/activate" ]; then
     source .venv/bin/activate
 fi
 
+export PYTHONPATH=/files/torch_cu124:$PYTHONPATH
 ROOT_PATH="$ROOT_PATH" uvicorn main:app \
     --host "$HOST" \
     --port "$PORT" \
