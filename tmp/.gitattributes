@@ -1,0 +1,2 @@
+arxiv.faiss filter=lfs diff=lfs merge=lfs -text
+arxiv_meta.json filter=lfs diff=lfs merge=lfs -text
